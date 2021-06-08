@@ -5,7 +5,13 @@
 
 export type RootStackParamList = {
   Root: undefined;
+  Home: undefined;
+  Login: undefined;
   NotFound: undefined;
+  Test: undefined;
+  DispatchDetail: undefined;
+  CreateDispatch: undefined;
+  UpdateDispatch: undefined;
 };
 
 export type BottomTabParamList = {

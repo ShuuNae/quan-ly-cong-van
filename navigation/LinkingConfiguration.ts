@@ -4,27 +4,38 @@
  * https://reactnavigation.org/docs/configuring-links
  */
 
-import * as Linking from 'expo-linking';
+import * as Linking from "expo-linking";
 
 export default {
-  prefixes: [Linking.makeUrl('/')],
+  prefixes: [Linking.makeUrl("/")],
   config: {
     screens: {
-      Root: {
-        screens: {
-          TabOne: {
-            screens: {
-              TabOneScreen: 'one',
-            },
-          },
-          TabTwo: {
-            screens: {
-              TabTwoScreen: 'two',
-            },
-          },
-        },
+      // Root: {
+      //   screens: {
+      //     TabOne: {
+      //       screens: {
+      //         TabOneScreen: "one",
+      //       },
+      //     },
+      //     TabTwo: {
+      //       screens: {
+      //         TabTwoScreen: "two",
+      //       },
+      //     },
+      //   },
+      // },
+      Root: "QLCV",
+      NotFound: "*",
+      Home: "Home",
+      DispatchDetail: {
+        path: "cong-van-di/:id",
       },
-      NotFound: '*',
+      Login: "Login",
+      Test: "Test",
+      CreateDispatch: "tao-cong-van-di",
+      UpdateDispatch: {
+        path: "cap-nhat-cong-van-di/:id/:userId",
+      },
     },
   },
 };
