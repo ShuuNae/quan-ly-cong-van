@@ -12,6 +12,8 @@ import { useLinkTo } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { getLoginToken } from "../../redux/actions/AuthActions";
 import { IRootState } from "../../redux/reducers";
+import { Button } from "react-native-elements";
+import { Input } from "react-native-elements";
 
 const DispatchesList = () => {
   const dispatch = useDispatch();
@@ -22,6 +24,10 @@ const DispatchesList = () => {
   const goToDispatchDetail = (id: any) => {
     linkTo("/cong-van-di/" + id);
     // console.log("/cong-van-di/" + id);
+  };
+
+  const toCreate = () => {
+    linkTo("/tao-cong-van-di");
   };
 
   const goToUpdateDispatch = (id: any, userId: any) => {
@@ -58,7 +64,28 @@ const DispatchesList = () => {
 
   return DispatchesList ? (
     <View style={styles.container}>
-      <Text>Danh sách công văn đi</Text>
+      <Text style={styles.title}>Danh sách công văn đi</Text>
+      <View style={styles.addContainer}>
+        <View style={{ flexDirection: "row" }}>
+          <Input
+            placeholder="Tìm kiếm"
+            // leftIcon={<Icon name="user" size={24} color="black" />}
+          />
+          <Button
+            title="Tìm kiếm"
+            type="outline"
+            // containerStyle={{ width: "10%" }}
+            titleStyle={{ fontSize: 16 }}
+          />
+        </View>
+        <Button
+          title="Thêm mới"
+          type="outline"
+          containerStyle={{ width: "10%" }}
+          titleStyle={{ fontSize: 16 }}
+          onPress={toCreate}
+        />
+      </View>
       <View style={styles.table}>
         <Text style={styles.row}>Ký hiệu</Text>
         <Text style={styles.row}>Số hiệu</Text>
@@ -115,6 +142,14 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderColor: "gray",
   },
+  title: {
+    textTransform: "uppercase",
+    fontSize: 22,
+    textAlign: "center",
+    paddingTop: 10,
+    paddingBottom: 10,
+    fontWeight: "bold",
+  },
   table: {
     flexDirection: "row",
     borderBottomWidth: 0.3,
@@ -131,9 +166,18 @@ const styles = StyleSheet.create({
   },
   row: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 16,
     paddingHorizontal: 2,
     paddingVertical: 5,
     textAlign: "center",
+  },
+  addContainer: {
+    paddingTop: "0.5%",
+    paddingHorizontal: "1%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    // alignItems: "center",
+    borderColor: "rgba(154,154,154, .5)",
+    borderTopWidth: 0.5,
   },
 });

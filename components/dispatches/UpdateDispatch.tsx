@@ -5,6 +5,7 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { Input, Button } from "react-native-elements";
@@ -18,7 +19,11 @@ import * as DocumentPicker from "expo-document-picker";
 import { useLinkTo } from "@react-navigation/native";
 import { reloadPage } from "../../redux/actions/AuthActions";
 
-const UpdateDispatch = () => {
+interface IProp {
+  id: number;
+}
+
+const UpdateDispatch = (props: IProp) => {
   const { loginReducer } = useSelector((state: IRootState) => state);
   const dispatch = useDispatch();
   const linkTo = useLinkTo();
@@ -32,9 +37,182 @@ const UpdateDispatch = () => {
   const [documentType, setDocumentType] = React.useState<any>();
   const [formList, setFormList] = React.useState<any>();
   const [file, setFile] = React.useState<any>();
+  const [fileName, setFileName] = React.useState<any>();
+  const [error, setError] = React.useState<boolean>(false);
+  const [dispatchDetail, setDispatchDetail] = React.useState<any>();
+  const [failed, setFailed] = React.useState<boolean>(false);
+  const [loading, setLoading] = React.useState<boolean>(false);
 
   const onSubmit = async (data: any) => {
-    console.log(data);
+    data.maND = loginReducer.userId;
+    data.tinhtrangduyet = dispatchDetail.tinhtrangduyet;
+    data.maVB = dispatchDetail.maVB;
+    setLoading(true);
+
+    if (file && file.file.name != dispatchDetail.tentailieu) {
+      try {
+        let fileName = file.file.name;
+        let fileType = file.file.type;
+        let fileUpload = file.file;
+        data.tentailieu = fileName;
+        data.tailieu = fileType;
+
+        const res: any = await getSignedUrl(fileName, fileType);
+        if (res.status === 200) {
+          let signedUrl = res.data;
+          let resultUpload: any = await uploadFile(fileUpload, signedUrl);
+          if (resultUpload.status === 200) {
+            let resultCreateDispatch: any = await updateDispatch(data);
+            if (resultCreateDispatch.status === 200) {
+              dispatch(reloadPage("Home"));
+              setLoading(false);
+              linkTo("/Home");
+            }
+          }
+        }
+      } catch (err) {
+        setLoading(false);
+        setFailed(true);
+      }
+    } else {
+      try {
+        let result: any = await updateDispatch(data);
+        if (result.status === 200) {
+          setLoading(false);
+          alert("Cập nhật thành công");
+          dispatch(reloadPage("Home"));
+          linkTo("/Home");
+        }
+      } catch (err) {
+        setFailed(true);
+      }
+    }
+  };
+
+  const getSignedUrl = async (fileName: any, fileType: any) => {
+    try {
+      const res = await axios.get(
+        "https://qlcv-server.herokuapp.com/api/dispatches/getSignedUrl",
+        {
+          params: { fileName: fileName, fileType: fileType },
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+      // console.log(res);
+      return res;
+    } catch (e) {
+      // console.log(e);
+      return e;
+    }
+  };
+
+  const uploadFile = async (fileUpload: any, signedUrl: any) => {
+    try {
+      let options = {
+        headers: {
+          "Content-Type": file.file.type,
+          // ContentEncoding: "base64",
+        },
+      };
+      // let fileToUpload = {
+      //   uri: fileUpload.uri,
+      //   name: fileUpload.file.name,
+      //   type: fileUpload.file.type,
+      // };
+      const res = await axios.put(signedUrl, fileUpload, options);
+      return res;
+    } catch (e) {
+      return e;
+    }
+  };
+
+  const updateDispatch = async (data: any) => {
+    try {
+      let res = await axios.patch(
+        "https://qlcv-server.herokuapp.com/api/dispatches/",
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+      return res;
+    } catch (e) {
+      setFailed(true);
+      return e;
+    }
+  };
+
+  React.useEffect(() => {
+    if (loginReducer.token) {
+      getDispatch();
+      getDocumentType();
+      getForms();
+    }
+  }, [loginReducer.token]);
+
+  const getDispatch = async () => {
+    try {
+      const res = await axios.get(
+        "https://qlcv-server.herokuapp.com/api/dispatches/" + props.id,
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+      let responseData = { ...res.data.data };
+
+      if (res.data.success == 0) {
+        setError(true);
+      } else {
+        if (responseData.tentailieu) {
+          setFileName(responseData.tentailieu);
+        }
+        setDispatchDetail(responseData);
+      }
+    } catch (e) {
+      setDispatchDetail(null);
+    }
+  };
+
+  const getDocumentType = async () => {
+    try {
+      const res = await axios.get(
+        "https://qlcv-server.herokuapp.com/api/documentTypes/",
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+
+      let responseData = [...res.data.data];
+      setDocumentType(responseData);
+    } catch (e) {
+      setDocumentType(null);
+    }
+  };
+
+  const getForms = async () => {
+    try {
+      const res = await axios.get(
+        "https://qlcv-server.herokuapp.com/api/forms/",
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+
+      let responseData = [...res.data.data];
+      setFormList(responseData);
+    } catch (e) {
+      setFormList(null);
+    }
   };
 
   const pickFile = async () => {
@@ -44,6 +222,7 @@ const UpdateDispatch = () => {
       });
       if (res.size * Math.pow(10, -6) < 50) {
         setFile(res);
+        setFileName(res.name);
         console.log(res);
       } else {
         setFile(null);
@@ -114,9 +293,9 @@ const UpdateDispatch = () => {
     );
   };
 
-  return (
+  return dispatchDetail ? (
     <View style={styles.container}>
-      <Text style={styles.title}>Thêm công văn đi</Text>
+      <Text style={styles.title}>Sửa công văn đi</Text>
       <View style={styles.contentContainer}>
         <View style={styles.infoContainer}>
           <View style={{ flex: 1, paddingHorizontal: 20 }}>
@@ -134,7 +313,7 @@ const UpdateDispatch = () => {
               )}
               name="tenvb"
               rules={{ required: true }}
-              defaultValue=""
+              defaultValue={dispatchDetail.tenvb || ""}
             />
             {/* {errors.tenvb && <Text>Không được để trống</Text>} */}
 
@@ -146,14 +325,14 @@ const UpdateDispatch = () => {
                   containerStyle={styles.inputContainer}
                   onChangeText={(value) => onChange(value)}
                   value={value}
-                  keyboardType="number-pad"
+                  keyboardType="numeric"
                   errorMessage={errors.sohieu && "Không được để trống"}
                   label="Số hiệu"
                 />
               )}
               name="sohieu"
               rules={{ required: true }}
-              defaultValue=""
+              defaultValue={dispatchDetail.sohieu}
             />
 
             <Controller
@@ -170,7 +349,7 @@ const UpdateDispatch = () => {
               )}
               name="kyhieu"
               rules={{ required: true }}
-              defaultValue=""
+              defaultValue={dispatchDetail.kyhieu || ""}
             />
             <Controller
               control={control}
@@ -192,7 +371,7 @@ const UpdateDispatch = () => {
               )}
               name="ngayky"
               rules={{ required: true }}
-              defaultValue=""
+              defaultValue={dispatchDetail.ngayky || ""}
             />
             {errors.ngayky && <Text>Không được để trống</Text>}
 
@@ -210,7 +389,7 @@ const UpdateDispatch = () => {
               )}
               name="ngaydi"
               rules={{ required: true }}
-              defaultValue=""
+              defaultValue={dispatchDetail.ngaydi || ""}
             />
             {errors.ngaydi && <Text>Không được để trống</Text>}
             <Controller
@@ -227,7 +406,7 @@ const UpdateDispatch = () => {
               )}
               name="cqnhan"
               rules={{ required: true }}
-              defaultValue=""
+              defaultValue={dispatchDetail.cqnhan || ""}
             />
           </View>
           <View style={{ flex: 1, paddingHorizontal: 20 }}>
@@ -249,7 +428,7 @@ const UpdateDispatch = () => {
               )}
               name="maLVB"
               rules={{ required: true }}
-              defaultValue=""
+              defaultValue={dispatchDetail.maLVB || ""}
             />
             {errors.maLVB && <Text>Không được để trống</Text>}
 
@@ -271,7 +450,7 @@ const UpdateDispatch = () => {
               )}
               name="mucdokhan"
               rules={{ required: true }}
-              defaultValue=""
+              defaultValue={dispatchDetail.mucdokhan || ""}
             />
             {errors.mucdokhan && <Text>Không được để trống</Text>}
 
@@ -293,7 +472,7 @@ const UpdateDispatch = () => {
               )}
               name="mucdomat"
               rules={{ required: true }}
-              defaultValue=""
+              defaultValue={dispatchDetail.mucdomat || ""}
             />
             {errors.mucdomat && <Text>Không được để trống</Text>}
 
@@ -315,7 +494,7 @@ const UpdateDispatch = () => {
               )}
               name="maBM"
               rules={{ required: true }}
-              defaultValue=""
+              defaultValue={dispatchDetail.maBM || ""}
             />
             {errors.maBM && <Text>Không được để trống</Text>}
             <Controller
@@ -336,7 +515,7 @@ const UpdateDispatch = () => {
               )}
               name="duongdi"
               rules={{ required: true }}
-              defaultValue=""
+              defaultValue={dispatchDetail.duongdi || ""}
             />
             {errors.duongdi && <Text>Không được để trống</Text>}
 
@@ -356,7 +535,7 @@ const UpdateDispatch = () => {
               )}
               name="tennv"
               rules={{ required: true }}
-              defaultValue=""
+              defaultValue={dispatchDetail.tennv || ""}
             />
           </View>
         </View>
@@ -377,7 +556,7 @@ const UpdateDispatch = () => {
             )}
             name="noidung"
             rules={{ required: true }}
-            defaultValue=""
+            defaultValue={dispatchDetail.noidung || ""}
           />
         </View>
         <View style={styles.fileContainer}>
@@ -385,19 +564,36 @@ const UpdateDispatch = () => {
           <View style={styles.uploadFileContainer}>
             <Button title="Chọn File" type="outline" onPress={pickFile} />
             <Text style={styles.fileName}>
-              {file ? file.file.name : "Không có file được chọn"}
+              {fileName ? fileName : "Không có file được chọn"}
             </Text>
           </View>
         </View>
       </View>
       <View style={styles.submitContainer}>
-        <Button
-          title="Tạo"
-          containerStyle={styles.submitButton}
-          onPress={handleSubmit(onSubmit)}
-        />
-        <Text></Text>
+        {loading ? (
+          <Button
+            containerStyle={styles.submitButton}
+            title="Loading button"
+            loading
+          />
+        ) : (
+          <Button
+            title="Cập nhật"
+            containerStyle={styles.submitButton}
+            onPress={handleSubmit(onSubmit)}
+          />
+        )}
+
+        <Text>{failed && "Cập nhật thất bại! Xin thử lại sau"}</Text>
       </View>
+    </View>
+  ) : error ? (
+    <View style={styles.container}>
+      <Text>Không có dữ liệu</Text>
+    </View>
+  ) : (
+    <View style={styles.container}>
+      <ActivityIndicator size="large" color="#00ff00" />
     </View>
   );
 };
@@ -477,7 +673,7 @@ const styles = StyleSheet.create({
   },
   submitContainer: {
     alignItems: "center",
-    paddingVertical: "4%",
+    paddingVertical: "5%",
   },
   submitButton: {
     width: "10%",

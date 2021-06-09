@@ -35,6 +35,12 @@ const CreateDispatch = () => {
   const [failed, setFailed] = React.useState<boolean>(false);
   const [loading, setLoading] = React.useState<boolean>(false);
 
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
   const pickFile = async () => {
     try {
       const res: any = await DocumentPicker.getDocumentAsync({
@@ -51,11 +57,6 @@ const CreateDispatch = () => {
     }
   };
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
   const onSubmit = async (data: any) => {
     setLoading(true);
     data.maND = loginReducer.userId;
@@ -81,6 +82,7 @@ const CreateDispatch = () => {
         }
       }
     } else {
+      console.log(data);
       let result: any = await createDispatch(data);
       if (result.status === 200) {
         setLoading(false);

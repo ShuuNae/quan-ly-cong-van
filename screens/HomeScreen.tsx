@@ -44,13 +44,7 @@ const HomeScreen = () => {
       </TouchableOpacity>
       <View style={styles.header}></View>
       <View style={styles.middle}>
-        <View style={styles.sidebar}>
-          <CustomSidebar title="Danh sách công văn đi" />
-          <CustomSidebar title="Thêm công văn đi" onPress={toCreate} />
-        </View>
-        <View style={styles.content}>
-          <DispatchesList />
-        </View>
+        <DispatchesList />
       </View>
     </View>
   ) : (
@@ -77,13 +71,7 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    flex: 5,
-    backgroundColor: "#E5E5E5",
-  },
-
-  sidebar: {
     flex: 1,
-    backgroundColor: "green",
-    alignItems: "center",
+    backgroundColor: "#E5E5E5",
   },
 });
