@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import DispatchDetail from "../../components/dispatches/DispatchDetail";
 import NavBar from "../../components/NavBar";
 import { IRootState } from "../../redux/reducers";
+import ArriveDetail from "../../components/arrives/ArriveDetail";
 
 const HEIGHT = Dimensions.get("window").height;
 
@@ -32,7 +33,7 @@ const DispatchDetailScreen = (props: IProps) => {
           <NavBar />
         </View>
         <View style={styles.middle}>
-          <DispatchDetail id={id} />
+          <ArriveDetail id={id} />
         </View>
       </ImageBackground>
     </View>

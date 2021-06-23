@@ -1,10 +1,17 @@
 import React from "react";
-import { StyleSheet, Text, View, Dimensions } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Dimensions,
+  ImageBackground,
+} from "react-native";
 import { useLinkTo } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { IRootState } from "../../redux/reducers";
 import UpdateDispatch from "../../components/dispatches/UpdateDispatch";
 import { loginReducer } from "../../redux/reducers/loginReducer";
+import NavBar from "../../components/NavBar";
 
 const HEIGHT = Dimensions.get("window").height;
 
@@ -29,10 +36,17 @@ const UpdateDispatchScreen = (props: IProps) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}></View>
-      <View style={styles.middle}>
-        <UpdateDispatch id={id} />
-      </View>
+      <ImageBackground
+        source={require("../../assets/images/background3.jpg")}
+        style={styles.image}
+      >
+        <View style={styles.header}>
+          <NavBar />
+        </View>
+        <View style={styles.middle}>
+          <UpdateDispatch id={id} />
+        </View>
+      </ImageBackground>
     </View>
   );
 };
@@ -45,12 +59,12 @@ const styles = StyleSheet.create({
     height: HEIGHT * 1.6,
   },
   header: {
-    height: HEIGHT / 13,
-    backgroundColor: "blue",
-    borderWidth: 0.5,
-    borderColor: "black",
+    height: HEIGHT / 13.5,
   },
-
+  image: {
+    flex: 1,
+    resizeMode: "cover",
+  },
   middle: {
     flex: 8,
     flexDirection: "row",

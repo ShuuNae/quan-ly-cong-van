@@ -1,13 +1,7 @@
 import React from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Dimensions,
-  ImageBackground,
-} from "react-native";
-import CreateDispatch from "../../components/dispatches/CreateDispatch";
+import { Dimensions, ImageBackground, StyleSheet, View } from "react-native";
 import NavBar from "../../components/NavBar";
+import CreateArrive from "../../components/arrives/CreateArrive";
 
 const HEIGHT = Dimensions.get("window").height;
 
@@ -22,7 +16,7 @@ const CreateDispatchScreen = () => {
           <NavBar />
         </View>
         <View style={styles.middle}>
-          <CreateDispatch />
+          <CreateArrive />
         </View>
       </ImageBackground>
     </View>

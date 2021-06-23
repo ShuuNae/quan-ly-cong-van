@@ -23,7 +23,7 @@ interface IProp {
   id: number;
 }
 
-const UpdateDispatch = (props: IProp) => {
+const UpdateArrive = (props: IProp) => {
   const { loginReducer } = useSelector((state: IRootState) => state);
   const dispatch = useDispatch();
   const linkTo = useLinkTo();
@@ -39,17 +39,19 @@ const UpdateDispatch = (props: IProp) => {
   const [file, setFile] = React.useState<any>();
   const [fileName, setFileName] = React.useState<any>();
   const [error, setError] = React.useState<boolean>(false);
-  const [dispatchDetail, setDispatchDetail] = React.useState<any>();
+  const [arriveDetail, setArriveDetail] = React.useState<any>();
   const [failed, setFailed] = React.useState<boolean>(false);
   const [loading, setLoading] = React.useState<boolean>(false);
 
   const onSubmit = async (data: any) => {
     data.maND = loginReducer.userId;
-    data.tinhtrangduyet = dispatchDetail.tinhtrangduyet;
-    data.maVB = dispatchDetail.maVB;
+    data.tinhtrangduyet = arriveDetail.tinhtrangduyet;
+    data.maVB = arriveDetail.maVB;
+    data.tentailieu = arriveDetail.tentailieu;
+    data.tailieu = arriveDetail.tailieu;
     setLoading(true);
 
-    if (file && file.file.name != dispatchDetail.tentailieu) {
+    if (file && file.file.name != arriveDetail.tentailieu) {
       try {
         let fileName = file.file.name;
         let fileType = file.file.type;
@@ -64,9 +66,9 @@ const UpdateDispatch = (props: IProp) => {
           if (resultUpload.status === 200) {
             let resultCreateDispatch: any = await updateDispatch(data);
             if (resultCreateDispatch.status === 200) {
-              dispatch(reloadPage("Home"));
+              dispatch(reloadPage("Arrives update"));
               setLoading(false);
-              linkTo("/Home");
+              linkTo("/cong-van-den");
             }
           }
         }
@@ -80,8 +82,8 @@ const UpdateDispatch = (props: IProp) => {
         if (result.status === 200) {
           setLoading(false);
           alert("Cập nhật thành công");
-          dispatch(reloadPage("Home"));
-          linkTo("/Home");
+          dispatch(reloadPage("Arrives update"));
+          linkTo("/cong-van-den");
         }
       } catch (err) {
         setFailed(true);
@@ -92,7 +94,7 @@ const UpdateDispatch = (props: IProp) => {
   const getSignedUrl = async (fileName: any, fileType: any) => {
     try {
       const res = await axios.get(
-        "https://qlcv-server.herokuapp.com/api/dispatches/getSignedUrl",
+        "https://qlcv-server.herokuapp.com/api/arrives/getSignedUrl",
         {
           params: { fileName: fileName, fileType: fileType },
           headers: {
@@ -131,7 +133,7 @@ const UpdateDispatch = (props: IProp) => {
   const updateDispatch = async (data: any) => {
     try {
       let res = await axios.patch(
-        "https://qlcv-server.herokuapp.com/api/dispatches/",
+        "https://qlcv-server.herokuapp.com/api/arrives/",
         data,
         {
           headers: {
@@ -157,7 +159,7 @@ const UpdateDispatch = (props: IProp) => {
   const getDispatch = async () => {
     try {
       const res = await axios.get(
-        "https://qlcv-server.herokuapp.com/api/dispatches/" + props.id,
+        "https://qlcv-server.herokuapp.com/api/arrives/" + props.id,
         {
           headers: {
             Authorization: `Bearer ${loginReducer.token}`,
@@ -172,10 +174,10 @@ const UpdateDispatch = (props: IProp) => {
         if (responseData.tentailieu) {
           setFileName(responseData.tentailieu);
         }
-        setDispatchDetail(responseData);
+        setArriveDetail(responseData);
       }
     } catch (e) {
-      setDispatchDetail(null);
+      setArriveDetail(null);
     }
   };
 
@@ -293,9 +295,9 @@ const UpdateDispatch = (props: IProp) => {
     );
   };
 
-  return dispatchDetail ? (
+  return arriveDetail ? (
     <View style={styles.container}>
-      <Text style={styles.title}>Sửa công văn đi</Text>
+      <Text style={styles.title}>Sửa công văn đến</Text>
       <View style={styles.contentContainer}>
         <View style={styles.infoContainer}>
           <View style={{ flex: 1, paddingHorizontal: 20 }}>
@@ -313,7 +315,7 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="tenvb"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.tenvb || ""}
+              defaultValue={arriveDetail.tenvb || ""}
             />
             {/* {errors.tenvb && <Text>Không được để trống</Text>} */}
 
@@ -332,7 +334,7 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="sohieu"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.sohieu}
+              defaultValue={arriveDetail.sohieu}
             />
 
             <Controller
@@ -349,7 +351,7 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="kyhieu"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.kyhieu || ""}
+              defaultValue={arriveDetail.kyhieu || ""}
             />
             <Controller
               control={control}
@@ -371,7 +373,7 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="ngayky"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.ngayky || ""}
+              defaultValue={arriveDetail.ngayky || ""}
             />
             {errors.ngayky && <Text>Không được để trống</Text>}
 
@@ -379,7 +381,7 @@ const UpdateDispatch = (props: IProp) => {
               control={control}
               render={({ field: { onChange, onBlur, value } }) => (
                 <View style={styles.inputWrapContainer}>
-                  <Text style={styles.labelStyle}>Ngày đi</Text>
+                  <Text style={styles.labelStyle}>Ngày đến</Text>
                   <DateTimePicker
                     value={value}
                     onChange={onChange}
@@ -387,11 +389,11 @@ const UpdateDispatch = (props: IProp) => {
                   />
                 </View>
               )}
-              name="ngaydi"
+              name="ngayden"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.ngaydi || ""}
+              defaultValue={arriveDetail.ngayden || ""}
             />
-            {errors.ngaydi && <Text>Không được để trống</Text>}
+            {errors.ngayden && <Text>Không được để trống</Text>}
             <Controller
               control={control}
               render={({ field: { onChange, onBlur, value } }) => (
@@ -401,12 +403,12 @@ const UpdateDispatch = (props: IProp) => {
                   onChangeText={(value) => onChange(value)}
                   value={value}
                   errorMessage={errors.cqnhan && "Không được để trống"}
-                  label="Cơ quan nhận"
+                  label="Nơi gửi"
                 />
               )}
-              name="cqnhan"
+              name="noigui"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.cqnhan || ""}
+              defaultValue={arriveDetail.noigui || ""}
             />
           </View>
           <View style={{ flex: 1, paddingHorizontal: 20 }}>
@@ -428,7 +430,7 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="maLVB"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.maLVB || ""}
+              defaultValue={arriveDetail.maLVB || ""}
             />
             {errors.maLVB && <Text>Không được để trống</Text>}
 
@@ -450,7 +452,7 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="mucdokhan"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.mucdokhan || ""}
+              defaultValue={arriveDetail.mucdokhan || ""}
             />
             {errors.mucdokhan && <Text>Không được để trống</Text>}
 
@@ -472,7 +474,7 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="mucdomat"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.mucdomat || ""}
+              defaultValue={arriveDetail.mucdomat || ""}
             />
             {errors.mucdomat && <Text>Không được để trống</Text>}
 
@@ -494,14 +496,14 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="maBM"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.maBM || ""}
+              defaultValue={arriveDetail.maBM || ""}
             />
             {errors.maBM && <Text>Không được để trống</Text>}
             <Controller
               control={control}
               render={({ field: { onChange, onBlur, value } }) => (
                 <View style={styles.inputWrapContainer}>
-                  <Text style={styles.labelStyle}>Đường đi</Text>
+                  <Text style={styles.labelStyle}>Đường đến</Text>
                   <Picker
                     style={styles.itemPicker}
                     selectedValue={value}
@@ -513,11 +515,11 @@ const UpdateDispatch = (props: IProp) => {
                   </Picker>
                 </View>
               )}
-              name="duongdi"
+              name="duongden"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.duongdi || ""}
+              defaultValue={arriveDetail.duongden || ""}
             />
-            {errors.duongdi && <Text>Không được để trống</Text>}
+            {errors.duongden && <Text>Không được để trống</Text>}
 
             <Controller
               control={control}
@@ -527,15 +529,15 @@ const UpdateDispatch = (props: IProp) => {
                   containerStyle={styles.inputContainer}
                   onChangeText={(value) => onChange(value)}
                   value={value}
-                  errorMessage={errors.tennv && "Không được để trống"}
+                  errorMessage={errors.tennvden && "Không được để trống"}
                   label="Nhân viên giao"
                   // multiline={true}
                   // numberOfLines={5}
                 />
               )}
-              name="tennv"
+              name="tennvden"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.tennv || ""}
+              defaultValue={arriveDetail.tennvden || ""}
             />
           </View>
         </View>
@@ -556,7 +558,7 @@ const UpdateDispatch = (props: IProp) => {
             )}
             name="noidung"
             rules={{ required: true }}
-            defaultValue={dispatchDetail.noidung || ""}
+            defaultValue={arriveDetail.noidung || ""}
           />
         </View>
         <View style={styles.fileContainer}>
@@ -598,7 +600,7 @@ const UpdateDispatch = (props: IProp) => {
   );
 };
 
-export default UpdateDispatch;
+export default UpdateArrive;
 
 const styles = StyleSheet.create({
   container: {

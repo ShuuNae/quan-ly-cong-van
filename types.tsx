@@ -12,6 +12,10 @@ export type RootStackParamList = {
   DispatchDetail: undefined;
   CreateDispatch: undefined;
   UpdateDispatch: undefined;
+  Arrives: undefined;
+  ArriveDetail: undefined;
+  CreateArrive: undefined;
+  UpdateArrive: undefined;
 };
 
 export type BottomTabParamList = {

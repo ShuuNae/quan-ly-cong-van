@@ -15,7 +15,6 @@ import { set } from "react-native-reanimated";
 import { useDispatch, useSelector } from "react-redux";
 import { IRootState } from "../../redux/reducers";
 import { Entypo } from "@expo/vector-icons";
-import DispatchesList from "./DispatchesList";
 import TextContainer from "../TextContainer";
 import { path, secretLevel, urgency } from "../../assets/data";
 
@@ -23,19 +22,19 @@ interface IProp {
   id: number;
 }
 
-const DispatchDetail = (props: IProp) => {
+const ArriveDetail = (props: IProp) => {
   const { loginReducer } = useSelector((state: IRootState) => state);
-  const [dispatchDetail, setDispatchDetail] = React.useState<any>();
+  const [arriveDetail, setDispatchDetail] = React.useState<any>();
   const [error, setError] = React.useState<boolean>(false);
   const [fileType, setFileType] = React.useState<string>("no-file");
 
   const getDownloadUrl = async () => {
-    if (dispatchDetail.tentailieu) {
+    if (arriveDetail.tentailieu) {
       let res = await axios.get(
-        "https://qlcv-server.herokuapp.com/api/dispatches/getDownloadUrl",
+        "https://qlcv-server.herokuapp.com/api/arrives/getDownloadUrl",
         {
           params: {
-            fileName: dispatchDetail.tentailieu,
+            fileName: arriveDetail.tentailieu,
           },
           headers: {
             Authorization: `Bearer ${loginReducer.token}`,
@@ -48,10 +47,10 @@ const DispatchDetail = (props: IProp) => {
     }
   };
 
-  const getDispatch = async () => {
+  const getArrive = async () => {
     try {
       const res = await axios.get(
-        "https://qlcv-server.herokuapp.com/api/dispatches/" + props.id,
+        "https://qlcv-server.herokuapp.com/api/arrives/" + props.id,
         {
           headers: {
             Authorization: `Bearer ${loginReducer.token}`,
@@ -79,52 +78,55 @@ const DispatchDetail = (props: IProp) => {
 
   React.useEffect(() => {
     if (loginReducer.token) {
-      getDispatch();
+      getArrive();
     }
   }, [loginReducer.token, props.id]);
 
-  return dispatchDetail ? (
+  return arriveDetail ? (
     <View style={styles.container}>
-      <Text style={styles.title}>Chi tiết công văn đi</Text>
+      <Text style={styles.title}>Chi tiết công văn đến</Text>
       <View style={styles.infoContainer}>
         <Text style={styles.infoTitles}>Thông tin</Text>
         <View style={styles.infoContent}>
           <View style={{ flex: 1 }}>
-            <TextContainer title="Tên văn bản" text={dispatchDetail.tenvb} />
-            <TextContainer title="Ký hiệu" text={dispatchDetail.kyhieu} />
-            <TextContainer title="Số hiệu" text={dispatchDetail.sohieu} />
-            <TextContainer title="Nơi nhận" text={dispatchDetail.cqnhan} />
-            <TextContainer title="Ngày ký" text={dispatchDetail.ngayky} />
-            <TextContainer title="Ngày đi" text={dispatchDetail.ngaydi} />
+            <TextContainer title="Tên văn bản" text={arriveDetail.tenvb} />
+            <TextContainer title="Ký hiệu" text={arriveDetail.kyhieu} />
+            <TextContainer title="Số hiệu" text={arriveDetail.sohieu} />
+            <TextContainer title="Nơi gửi" text={arriveDetail.noigui} />
+            <TextContainer title="Ngày ký" text={arriveDetail.ngayky} />
+            <TextContainer title="Ngày đến" text={arriveDetail.ngayden} />
             <TextContainer
-              title="Đường đi"
-              text={path[dispatchDetail.duongdi - 1]}
+              title="Đường đến"
+              text={path[arriveDetail.duongden - 1]}
             />
           </View>
 
           <View style={{ flex: 1 }}>
             <TextContainer
               title="Mức độ mật"
-              text={secretLevel[dispatchDetail.mucdomat - 1]}
+              text={secretLevel[arriveDetail.mucdomat - 1]}
             />
             <TextContainer
               title="Mức độ khẩn"
-              text={urgency[dispatchDetail.mucdokhan - 1]}
+              text={urgency[arriveDetail.mucdokhan - 1]}
             />
-            <TextContainer title="Loại văn bản" text={dispatchDetail.tenlvb} />
-            <TextContainer title="Biểu mẫu" text={dispatchDetail.tenBM} />
-            <TextContainer title="Nhân viên giao" text={dispatchDetail.tennv} />
+            <TextContainer title="Loại văn bản" text={arriveDetail.tenlvb} />
+            <TextContainer title="Biểu mẫu" text={arriveDetail.tenBM} />
+            <TextContainer
+              title="Nhân viên giao"
+              text={arriveDetail.tennvden}
+            />
             <TextContainer
               title="Tình trạng duyệt"
-              text={dispatchDetail.tinhtrangduyet}
+              text={arriveDetail.tinhtrangduyet}
             />
-            <TextContainer title="Người tạo" text={dispatchDetail.hoten} />
+            <TextContainer title="Người tạo" text={arriveDetail.hoten} />
           </View>
         </View>
       </View>
       <View style={styles.contentContainer}>
         <Text style={styles.infoTitles}>Nội dung</Text>
-        <Text style={{ paddingVertical: 5 }}>{dispatchDetail.noidung}</Text>
+        <Text style={{ paddingVertical: 5 }}>{arriveDetail.noidung}</Text>
       </View>
       <View style={styles.fileContainer}>
         <Text style={styles.infoTitles}>Tài liệu đính kèm</Text>
@@ -140,13 +142,13 @@ const DispatchDetail = (props: IProp) => {
             style={{
               textAlign: "center",
               color: "blue",
-              textDecorationLine: dispatchDetail.tentailieu
+              textDecorationLine: arriveDetail.tentailieu
                 ? "underline"
                 : "none",
             }}
           >
-            {dispatchDetail.tentailieu
-              ? dispatchDetail.tentailieu
+            {arriveDetail.tentailieu
+              ? arriveDetail.tentailieu
               : "Không có tài liệu đính kèm"}
           </Text>
         </TouchableOpacity>
@@ -168,7 +170,7 @@ const DispatchDetail = (props: IProp) => {
   );
 };
 
-export default DispatchDetail;
+export default ArriveDetail;
 
 const styles = StyleSheet.create({
   container: {

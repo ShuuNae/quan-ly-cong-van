@@ -23,6 +23,11 @@ import DispatchDetailScreen from "../screens/dispatches/DispatchDetailScreen";
 import { getLoginToken, logout } from "../redux/actions/AuthActions";
 import CreateDispatchScreen from "../screens/dispatches/CreateDispatchScreen";
 import UpdateDispatchScreen from "../screens/dispatches/UpdateDispatchScreen";
+import Arrives from "../screens/arrives/Arrives";
+import ArriveDetail from "../screens/arrives/ArriveDetailScreen";
+import ArriveDetailScreen from "../screens/arrives/ArriveDetailScreen";
+import CreateArriveScreen from "../screens/arrives/CreateArriveScreen";
+import UpdateArriveScreen from "../screens/arrives/UpdateArriveScreen";
 
 export default function Navigation({
   colorScheme,
@@ -54,7 +59,11 @@ function RootNavigator() {
       {loginReducer.isLoggedIn == false &&
       loginReducer.getTokenStatus == true ? (
         <>
-          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ title: "Đăng nhập" }}
+          />
         </>
       ) : (
         <>
@@ -75,6 +84,26 @@ function RootNavigator() {
           <Stack.Screen
             name="UpdateDispatch"
             component={UpdateDispatchScreen}
+          />
+          <Stack.Screen
+            name="Arrives"
+            component={Arrives}
+            options={{ title: "Quản lý công văn đến" }}
+          />
+          <Stack.Screen
+            name="ArriveDetail"
+            component={ArriveDetailScreen}
+            options={{ title: "Chi tiết công văn đến" }}
+          />
+          <Stack.Screen
+            name="CreateArrive"
+            component={CreateArriveScreen}
+            options={{ title: "Tạo công văn đến" }}
+          />
+          <Stack.Screen
+            name="UpdateArrive"
+            component={UpdateArriveScreen}
+            options={{ title: "Cập nhật công văn đến" }}
           />
         </>
       )}

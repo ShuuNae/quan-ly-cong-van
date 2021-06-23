@@ -5,7 +5,6 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { Input, Button } from "react-native-elements";
@@ -19,14 +18,22 @@ import * as DocumentPicker from "expo-document-picker";
 import { useLinkTo } from "@react-navigation/native";
 import { reloadPage } from "../../redux/actions/AuthActions";
 
-interface IProp {
-  id: number;
-}
+///////////////////////IF U WANT SET MAX DAY FOR INPUT DATE ////////////////////
+// const day = new Date().toISOString().split("T")[0];
+// console.log(day);
+////////////////////////////////////////////////////////////////////////////////
 
-const UpdateDispatch = (props: IProp) => {
+const CreateArrive = () => {
   const { loginReducer } = useSelector((state: IRootState) => state);
   const dispatch = useDispatch();
   const linkTo = useLinkTo();
+
+  const [documentType, setDocumentType] = React.useState<any>();
+  const [formList, setFormList] = React.useState<any>();
+  const [urgencyList, setUrgencyList] = React.useState<any>(urgency);
+  const [file, setFile] = React.useState<any>();
+  const [failed, setFailed] = React.useState<boolean>(false);
+  const [loading, setLoading] = React.useState<boolean>(false);
 
   const {
     control,
@@ -34,57 +41,53 @@ const UpdateDispatch = (props: IProp) => {
     formState: { errors },
   } = useForm();
 
-  const [documentType, setDocumentType] = React.useState<any>();
-  const [formList, setFormList] = React.useState<any>();
-  const [file, setFile] = React.useState<any>();
-  const [fileName, setFileName] = React.useState<any>();
-  const [error, setError] = React.useState<boolean>(false);
-  const [dispatchDetail, setDispatchDetail] = React.useState<any>();
-  const [failed, setFailed] = React.useState<boolean>(false);
-  const [loading, setLoading] = React.useState<boolean>(false);
+  const pickFile = async () => {
+    try {
+      const res: any = await DocumentPicker.getDocumentAsync({
+        type: "application/msword,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      });
+      if (res.size * Math.pow(10, -6) < 50) {
+        setFile(res);
+        console.log(res);
+      } else {
+        setFile(null);
+      }
+    } catch (e) {
+      setFile(null);
+    }
+  };
 
   const onSubmit = async (data: any) => {
-    data.maND = loginReducer.userId;
-    data.tinhtrangduyet = dispatchDetail.tinhtrangduyet;
-    data.maVB = dispatchDetail.maVB;
     setLoading(true);
+    data.maND = loginReducer.userId;
+    data.tinhtrangduyet = "Chưa duyệt";
+    if (file) {
+      let fileName = file.file.name;
+      let fileType = file.file.type;
+      let fileUpload = file.file;
+      data.tentailieu = fileName;
+      data.tailieu = fileType;
 
-    if (file && file.file.name != dispatchDetail.tentailieu) {
-      try {
-        let fileName = file.file.name;
-        let fileType = file.file.type;
-        let fileUpload = file.file;
-        data.tentailieu = fileName;
-        data.tailieu = fileType;
-
-        const res: any = await getSignedUrl(fileName, fileType);
-        if (res.status === 200) {
-          let signedUrl = res.data;
-          let resultUpload: any = await uploadFile(fileUpload, signedUrl);
-          if (resultUpload.status === 200) {
-            let resultCreateDispatch: any = await updateDispatch(data);
-            if (resultCreateDispatch.status === 200) {
-              dispatch(reloadPage("Home"));
-              setLoading(false);
-              linkTo("/Home");
-            }
+      const res: any = await getSignedUrl(fileName, fileType);
+      if (res.status === 200) {
+        let signedUrl = res.data;
+        let resultUpload: any = await uploadFile(fileUpload, signedUrl);
+        console.log(resultUpload);
+        if (resultUpload.status === 200) {
+          let resultCreateDispatch: any = await createArrive(data);
+          if (resultCreateDispatch.status === 200) {
+            dispatch(reloadPage("Arrives create"));
+            linkTo("/cong-van-den");
           }
         }
-      } catch (err) {
-        setLoading(false);
-        setFailed(true);
       }
     } else {
-      try {
-        let result: any = await updateDispatch(data);
-        if (result.status === 200) {
-          setLoading(false);
-          alert("Cập nhật thành công");
-          dispatch(reloadPage("Home"));
-          linkTo("/Home");
-        }
-      } catch (err) {
-        setFailed(true);
+      console.log(data);
+      let result: any = await createArrive(data);
+      if (result.status === 200) {
+        setLoading(false);
+        dispatch(reloadPage("Arrives create"));
+        linkTo("/cong-van-den");
       }
     }
   };
@@ -92,7 +95,7 @@ const UpdateDispatch = (props: IProp) => {
   const getSignedUrl = async (fileName: any, fileType: any) => {
     try {
       const res = await axios.get(
-        "https://qlcv-server.herokuapp.com/api/dispatches/getSignedUrl",
+        "https://qlcv-server.herokuapp.com/api/arrives/getSignedUrl",
         {
           params: { fileName: fileName, fileType: fileType },
           headers: {
@@ -128,10 +131,10 @@ const UpdateDispatch = (props: IProp) => {
     }
   };
 
-  const updateDispatch = async (data: any) => {
+  const createArrive = async (data: any) => {
     try {
-      let res = await axios.patch(
-        "https://qlcv-server.herokuapp.com/api/dispatches/",
+      let res = await axios.post(
+        "https://qlcv-server.herokuapp.com/api/arrives",
         data,
         {
           headers: {
@@ -143,39 +146,6 @@ const UpdateDispatch = (props: IProp) => {
     } catch (e) {
       setFailed(true);
       return e;
-    }
-  };
-
-  React.useEffect(() => {
-    if (loginReducer.token) {
-      getDispatch();
-      getDocumentType();
-      getForms();
-    }
-  }, [loginReducer.token, props.id]);
-
-  const getDispatch = async () => {
-    try {
-      const res = await axios.get(
-        "https://qlcv-server.herokuapp.com/api/dispatches/" + props.id,
-        {
-          headers: {
-            Authorization: `Bearer ${loginReducer.token}`,
-          },
-        }
-      );
-      let responseData = { ...res.data.data };
-
-      if (res.data.success == 0) {
-        setError(true);
-      } else {
-        if (responseData.tentailieu) {
-          setFileName(responseData.tentailieu);
-        }
-        setDispatchDetail(responseData);
-      }
-    } catch (e) {
-      setDispatchDetail(null);
     }
   };
 
@@ -192,6 +162,7 @@ const UpdateDispatch = (props: IProp) => {
 
       let responseData = [...res.data.data];
       setDocumentType(responseData);
+      console.log(responseData);
     } catch (e) {
       setDocumentType(null);
     }
@@ -210,25 +181,9 @@ const UpdateDispatch = (props: IProp) => {
 
       let responseData = [...res.data.data];
       setFormList(responseData);
+      console.log(responseData);
     } catch (e) {
       setFormList(null);
-    }
-  };
-
-  const pickFile = async () => {
-    try {
-      const res: any = await DocumentPicker.getDocumentAsync({
-        type: "application/msword,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      });
-      if (res.size * Math.pow(10, -6) < 50) {
-        setFile(res);
-        setFileName(res.name);
-        console.log(res);
-      } else {
-        setFile(null);
-      }
-    } catch (e) {
-      setFile(null);
     }
   };
 
@@ -249,13 +204,9 @@ const UpdateDispatch = (props: IProp) => {
   };
 
   const UrgencyList = () => {
-    return (
-      <>
-        {urgency.map((item: any, index: number) => (
-          <Picker.Item label={item} value={index + 1} key={index} />
-        ))}
-      </>
-    );
+    return urgencyList.map((item: any, index: number) => {
+      return <Picker.Item label={item} value={index + 1} key={index} />;
+    });
   };
 
   const SecretLevelList = () => {
@@ -293,9 +244,16 @@ const UpdateDispatch = (props: IProp) => {
     );
   };
 
-  return dispatchDetail ? (
+  React.useEffect(() => {
+    if (loginReducer.token) {
+      getDocumentType();
+      getForms();
+    }
+  }, [loginReducer.token]);
+
+  return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sửa công văn đi</Text>
+      <Text style={styles.title}>Thêm công văn đến</Text>
       <View style={styles.contentContainer}>
         <View style={styles.infoContainer}>
           <View style={{ flex: 1, paddingHorizontal: 20 }}>
@@ -313,7 +271,7 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="tenvb"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.tenvb || ""}
+              defaultValue=""
             />
             {/* {errors.tenvb && <Text>Không được để trống</Text>} */}
 
@@ -325,14 +283,14 @@ const UpdateDispatch = (props: IProp) => {
                   containerStyle={styles.inputContainer}
                   onChangeText={(value) => onChange(value)}
                   value={value}
-                  keyboardType="numeric"
+                  keyboardType="number-pad"
                   errorMessage={errors.sohieu && "Không được để trống"}
                   label="Số hiệu"
                 />
               )}
               name="sohieu"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.sohieu}
+              defaultValue=""
             />
 
             <Controller
@@ -349,7 +307,7 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="kyhieu"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.kyhieu || ""}
+              defaultValue=""
             />
             <Controller
               control={control}
@@ -371,7 +329,7 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="ngayky"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.ngayky || ""}
+              defaultValue=""
             />
             {errors.ngayky && <Text>Không được để trống</Text>}
 
@@ -379,7 +337,7 @@ const UpdateDispatch = (props: IProp) => {
               control={control}
               render={({ field: { onChange, onBlur, value } }) => (
                 <View style={styles.inputWrapContainer}>
-                  <Text style={styles.labelStyle}>Ngày đi</Text>
+                  <Text style={styles.labelStyle}>Ngày đến</Text>
                   <DateTimePicker
                     value={value}
                     onChange={onChange}
@@ -387,11 +345,11 @@ const UpdateDispatch = (props: IProp) => {
                   />
                 </View>
               )}
-              name="ngaydi"
+              name="ngayden"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.ngaydi || ""}
+              defaultValue=""
             />
-            {errors.ngaydi && <Text>Không được để trống</Text>}
+            {errors.ngayden && <Text>Không được để trống</Text>}
             <Controller
               control={control}
               render={({ field: { onChange, onBlur, value } }) => (
@@ -400,13 +358,13 @@ const UpdateDispatch = (props: IProp) => {
                   containerStyle={styles.inputContainer}
                   onChangeText={(value) => onChange(value)}
                   value={value}
-                  errorMessage={errors.cqnhan && "Không được để trống"}
-                  label="Cơ quan nhận"
+                  errorMessage={errors.noigui && "Không được để trống"}
+                  label="Nơi gửi"
                 />
               )}
-              name="cqnhan"
+              name="noigui"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.cqnhan || ""}
+              defaultValue=""
             />
           </View>
           <View style={{ flex: 1, paddingHorizontal: 20 }}>
@@ -428,7 +386,7 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="maLVB"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.maLVB || ""}
+              defaultValue=""
             />
             {errors.maLVB && <Text>Không được để trống</Text>}
 
@@ -450,7 +408,7 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="mucdokhan"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.mucdokhan || ""}
+              defaultValue="1"
             />
             {errors.mucdokhan && <Text>Không được để trống</Text>}
 
@@ -472,7 +430,7 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="mucdomat"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.mucdomat || ""}
+              defaultValue="1"
             />
             {errors.mucdomat && <Text>Không được để trống</Text>}
 
@@ -494,14 +452,14 @@ const UpdateDispatch = (props: IProp) => {
               )}
               name="maBM"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.maBM || ""}
+              defaultValue=""
             />
             {errors.maBM && <Text>Không được để trống</Text>}
             <Controller
               control={control}
               render={({ field: { onChange, onBlur, value } }) => (
                 <View style={styles.inputWrapContainer}>
-                  <Text style={styles.labelStyle}>Đường đi</Text>
+                  <Text style={styles.labelStyle}>Đường đến</Text>
                   <Picker
                     style={styles.itemPicker}
                     selectedValue={value}
@@ -513,11 +471,11 @@ const UpdateDispatch = (props: IProp) => {
                   </Picker>
                 </View>
               )}
-              name="duongdi"
+              name="duongden"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.duongdi || ""}
+              defaultValue=""
             />
-            {errors.duongdi && <Text>Không được để trống</Text>}
+            {errors.duongden && <Text>Không được để trống</Text>}
 
             <Controller
               control={control}
@@ -527,15 +485,15 @@ const UpdateDispatch = (props: IProp) => {
                   containerStyle={styles.inputContainer}
                   onChangeText={(value) => onChange(value)}
                   value={value}
-                  errorMessage={errors.tennv && "Không được để trống"}
+                  errorMessage={errors.tennvden && "Không được để trống"}
                   label="Nhân viên giao"
                   // multiline={true}
                   // numberOfLines={5}
                 />
               )}
-              name="tennv"
+              name="tennvden"
               rules={{ required: true }}
-              defaultValue={dispatchDetail.tennv || ""}
+              defaultValue=""
             />
           </View>
         </View>
@@ -556,7 +514,7 @@ const UpdateDispatch = (props: IProp) => {
             )}
             name="noidung"
             rules={{ required: true }}
-            defaultValue={dispatchDetail.noidung || ""}
+            defaultValue=""
           />
         </View>
         <View style={styles.fileContainer}>
@@ -564,41 +522,24 @@ const UpdateDispatch = (props: IProp) => {
           <View style={styles.uploadFileContainer}>
             <Button title="Chọn File" type="outline" onPress={pickFile} />
             <Text style={styles.fileName}>
-              {fileName ? fileName : "Không có file được chọn"}
+              {file ? file.file.name : "Không có file được chọn"}
             </Text>
           </View>
         </View>
       </View>
       <View style={styles.submitContainer}>
-        {loading ? (
-          <Button
-            containerStyle={styles.submitButton}
-            title="Loading button"
-            loading
-          />
-        ) : (
-          <Button
-            title="Cập nhật"
-            containerStyle={styles.submitButton}
-            onPress={handleSubmit(onSubmit)}
-          />
-        )}
-
-        <Text>{failed && "Cập nhật thất bại! Xin thử lại sau"}</Text>
+        <Button
+          title="Tạo"
+          containerStyle={styles.submitButton}
+          onPress={handleSubmit(onSubmit)}
+        />
+        <Text></Text>
       </View>
-    </View>
-  ) : error ? (
-    <View style={styles.container}>
-      <Text>Không có dữ liệu</Text>
-    </View>
-  ) : (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color="#00ff00" />
     </View>
   );
 };
 
-export default UpdateDispatch;
+export default CreateArrive;
 
 const styles = StyleSheet.create({
   container: {
@@ -673,7 +614,7 @@ const styles = StyleSheet.create({
   },
   submitContainer: {
     alignItems: "center",
-    paddingVertical: "5%",
+    paddingVertical: "4%",
   },
   submitButton: {
     width: "10%",

@@ -1,13 +1,11 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import {
-  LOGIN,
   LOGOUT,
   SET_JWT_TOKEN,
   SET_LOGIN_STATE,
   SET_RELOAD_PAGE,
 } from "../actionTypes";
-import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AUTH_PROFILE_KEY, AUTH_TOKEN_KEY } from "../../constants/constants";
 
 export const login =
   (username: string, password: string) => async (dispatch: any) => {
@@ -20,15 +18,16 @@ export const login =
     });
     const bearerToken = result.value.data.token;
     const userProfile = result.value.data.data.userID;
+    console.log(result);
     if (bearerToken) {
       const jwt = `${bearerToken}`;
-      await AsyncStorage.setItem(AUTH_TOKEN_KEY, jwt);
+      await AsyncStorage.setItem("AUTH_TOKEN_KEY", jwt);
       await AsyncStorage.setItem("AUTH_PROFILE_KEY", userProfile);
     }
   };
 
 export const getLoginToken = () => async (dispatch: any) => {
-  const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+  const token = await AsyncStorage.getItem("AUTH_TOKEN_KEY");
   const account = await AsyncStorage.getItem("AUTH_PROFILE_KEY");
   await dispatch({
     type: SET_JWT_TOKEN,
@@ -41,8 +40,8 @@ export const getLoginToken = () => async (dispatch: any) => {
 };
 
 export const clearAuthToken = () => {
-  AsyncStorage.removeItem(AUTH_TOKEN_KEY);
-  AsyncStorage.removeItem(AUTH_PROFILE_KEY);
+  AsyncStorage.removeItem("AUTH_TOKEN_KEY");
+  AsyncStorage.removeItem("AUTH_PROFILE_KEY");
 };
 
 export const logout = () => (dispatch: any) => {

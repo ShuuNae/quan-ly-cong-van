@@ -36,6 +36,14 @@ export default {
       UpdateDispatch: {
         path: "cap-nhat-cong-van-di/:id/:userId",
       },
+      Arrives: "cong-van-den",
+      ArriveDetail: {
+        path: "chi-tiet-cong-van-den/:id",
+      },
+      CreateArrive: "tao-cong-van-den",
+      UpdateArrive: {
+        path: "cap-nhat-cong-van-den/:id/:userId",
+      },
     },
   },
 };
