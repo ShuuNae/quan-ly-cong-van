@@ -44,6 +44,31 @@ export default {
       UpdateArrive: {
         path: "cap-nhat-cong-van-den/:id/:userId",
       },
+      Account: {
+        path: "tai-khoan",
+        screens: {
+          "Thông tin tài khoản": "thong-tin-tai-khoan",
+          "Đổi mật khẩu": "doi-mat-khau",
+          "Thông tin cơ quan": "thong-tin-co-quan",
+        },
+      },
+      UpdateAccountInfo: "cap-nhat-tai-khoan",
+      Admin: {
+        path: "quan-tri-vien",
+        screens: {
+          "Quản lý tài khoản": "quan-ly-tai-khoan",
+        },
+      },
+      AddAccount: "them-tai-khoan",
+      UpdateAccount: "cap-nhat-tai-khoan-admin",
+      Internals: "cong-van-noi-bo",
+      CreateInternal: "tao-cong-van-noi-bo",
+      InternalDetail: {
+        path: "chi-tiet-cong-van-noi-bo/:id",
+      },
+      UpdateInternal: {
+        path: "cap-nhat-cong-van-noi-bo/:id/:userId",
+      },
     },
   },
 };

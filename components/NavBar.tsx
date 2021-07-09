@@ -6,9 +6,11 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Octicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/actions/AuthActions";
+import { IRootState } from "../redux/reducers";
 const NavBar = () => {
   const dispatch = useDispatch();
   const linkTo = useLinkTo();
+  const { loginReducer } = useSelector((state: IRootState) => state);
 
   const toDispatch = () => {
     linkTo("/Home");
@@ -18,9 +20,24 @@ const NavBar = () => {
     linkTo("/cong-van-den");
   };
 
+  const toInternal = () => {
+    linkTo("/cong-van-noi-bo");
+  };
+
+  const toAccount = () => {
+    linkTo("/tai-khoan");
+  };
+
+  const toAdmin = () => {
+    linkTo("/quan-tri-vien");
+  };
+
   const handleLogout = () => {
     dispatch(logout());
   };
+  React.useEffect(() => {
+    console.log(loginReducer.isAdmin);
+  }, [loginReducer]);
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -67,8 +84,26 @@ const NavBar = () => {
           }}
           titleStyle={{ fontSize: 16, fontWeight: "bold" }}
           buttonStyle={{ padding: 5 }}
+          onPress={toInternal}
         />
-        <View style={{ flex: 1 }}></View>
+        {loginReducer.isAdmin == 1 ? (
+          <Button
+            title="Admin"
+            type="clear"
+            containerStyle={{
+              flex: 1,
+              // width: "20%",
+              borderLeftWidth: 0.5,
+              borderRightWidth: 0.5,
+              borderColor: "rgba(154,154,154, .3)",
+            }}
+            titleStyle={{ fontSize: 16, fontWeight: "bold" }}
+            buttonStyle={{ padding: 5 }}
+            onPress={toAdmin}
+          />
+        ) : (
+          <View style={{ flex: 1 }}></View>
+        )}
         <View style={{ flex: 1, flexDirection: "row" }}>
           <Button
             icon={
@@ -85,6 +120,7 @@ const NavBar = () => {
             title="Tài khoản"
             titleStyle={{ fontSize: 16, paddingLeft: 5, fontWeight: "bold" }}
             buttonStyle={{ padding: 5 }}
+            onPress={toAccount}
           />
           <Button
             icon={<Octicons name="sign-out" size={22} color="#5680E9" />}

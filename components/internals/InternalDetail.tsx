@@ -22,7 +22,7 @@ interface IProp {
   id: number;
 }
 
-const ArriveDetail = (props: IProp) => {
+const InternalDetail = (props: IProp) => {
   const { loginReducer } = useSelector((state: IRootState) => state);
   const [arriveDetail, setDispatchDetail] = React.useState<any>();
   const [error, setError] = React.useState<boolean>(false);
@@ -31,7 +31,7 @@ const ArriveDetail = (props: IProp) => {
   const getDownloadUrl = async () => {
     if (arriveDetail.tentailieu) {
       let res = await axios.get(
-        "https://qlcv-server.herokuapp.com/api/arrives/getDownloadUrl",
+        "https://qlcv-server.herokuapp.com/api/internals/getDownloadUrl",
         {
           params: {
             fileName: arriveDetail.tentailieu,
@@ -50,7 +50,7 @@ const ArriveDetail = (props: IProp) => {
   const getArrive = async () => {
     try {
       const res = await axios.get(
-        "https://qlcv-server.herokuapp.com/api/arrives/" + props.id,
+        "https://qlcv-server.herokuapp.com/api/internals/" + props.id,
         {
           headers: {
             Authorization: `Bearer ${loginReducer.token}`,
@@ -83,7 +83,7 @@ const ArriveDetail = (props: IProp) => {
 
   return arriveDetail ? (
     <View style={styles.container}>
-      <Text style={styles.title}>Chi tiết công văn đến</Text>
+      <Text style={styles.title}>Chi tiết công văn nội bộ</Text>
       <View style={styles.infoContainer}>
         <Text style={styles.infoTitles}>Thông tin</Text>
         <View style={styles.infoContent}>
@@ -91,30 +91,14 @@ const ArriveDetail = (props: IProp) => {
             <TextContainer title="Tên văn bản" text={arriveDetail.tenvb} />
             <TextContainer title="Ký hiệu" text={arriveDetail.kyhieu} />
             <TextContainer title="Số hiệu" text={arriveDetail.sohieu} />
-            <TextContainer title="Nơi gửi" text={arriveDetail.noigui} />
             <TextContainer title="Ngày ký" text={arriveDetail.ngayky} />
-            <TextContainer title="Ngày đến" text={arriveDetail.ngayden} />
-            <TextContainer
-              title="Đường đến"
-              text={path[arriveDetail.duongden - 1]}
-            />
+            <TextContainer title="Ngày lưu" text={arriveDetail.ngayluu} />
           </View>
 
           <View style={{ flex: 1 }}>
-            <TextContainer
-              title="Mức độ mật"
-              text={secretLevel[arriveDetail.mucdomat - 1]}
-            />
-            <TextContainer
-              title="Mức độ khẩn"
-              text={urgency[arriveDetail.mucdokhan - 1]}
-            />
             <TextContainer title="Loại văn bản" text={arriveDetail.tenlvb} />
             <TextContainer title="Biểu mẫu" text={arriveDetail.tenBM} />
-            <TextContainer
-              title="Nhân viên giao"
-              text={arriveDetail.tennvden}
-            />
+            <TextContainer title="Phòng ban nhận" text={arriveDetail.pbnhan} />
             <TextContainer
               title="Tình trạng duyệt"
               text={arriveDetail.tinhtrangduyet}
@@ -169,7 +153,7 @@ const ArriveDetail = (props: IProp) => {
   );
 };
 
-export default ArriveDetail;
+export default InternalDetail;
 
 const styles = StyleSheet.create({
   container: {

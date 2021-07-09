@@ -18,22 +18,26 @@ export const login =
     });
     const bearerToken = result.value.data.token;
     const userProfile = result.value.data.data.userID;
+    const isAdmin = result.value.data.data.isAdmin;
     console.log(result);
     if (bearerToken) {
       const jwt = `${bearerToken}`;
       await AsyncStorage.setItem("AUTH_TOKEN_KEY", jwt);
       await AsyncStorage.setItem("AUTH_PROFILE_KEY", userProfile);
+      await AsyncStorage.setItem("AUTH_ADMIN_KEY", isAdmin);
     }
   };
 
 export const getLoginToken = () => async (dispatch: any) => {
   const token = await AsyncStorage.getItem("AUTH_TOKEN_KEY");
   const account = await AsyncStorage.getItem("AUTH_PROFILE_KEY");
+  const isAdmin = await AsyncStorage.getItem("AUTH_ADMIN_KEY");
   await dispatch({
     type: SET_JWT_TOKEN,
     payload: {
       token: token,
       userID: account,
+      isAdmin: isAdmin,
       isLoggedIn: token && token.length > 0 ? true : false,
     },
   });

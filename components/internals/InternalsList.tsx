@@ -13,34 +13,52 @@ import { useDispatch, useSelector } from "react-redux";
 import { getLoginToken } from "../../redux/actions/AuthActions";
 import { IRootState } from "../../redux/reducers";
 import { Button } from "react-native-elements";
-import { DataTable } from "react-native-paper";
 import { Input } from "react-native-elements";
+import { DataTable } from "react-native-paper";
 
-const ArrivesList = () => {
+const InternalsList = () => {
   const dispatch = useDispatch();
   const { loginReducer } = useSelector((state: IRootState) => state);
   const [DispatchesList, setDispatchesList] = React.useState<any>();
+  const linkTo = useLinkTo();
   const [page, setPage] = React.useState<number>(0);
   const [totalPages, setTotalPages] = React.useState<any>(1);
-  const linkTo = useLinkTo();
-
-  const goToArriveDetail = (id: any) => {
-    linkTo("/chi-tiet-cong-van-den/" + id);
+  const goToDetail = (id: any) => {
+    linkTo("/chi-tiet-cong-van-noi-bo/" + id);
     // console.log("/cong-van-di/" + id);
   };
 
   const toCreate = () => {
-    linkTo("/tao-cong-van-den");
+    linkTo("/tao-cong-van-noi-bo");
   };
 
   const goToUpdateArrive = (id: any, userId: any) => {
-    linkTo(`/cap-nhat-cong-van-den/${id}/${userId}`);
+    linkTo(`/cap-nhat-cong-van-noi-bo/${id}/${userId}`);
+  };
+
+  const getListCount = async () => {
+    try {
+      const res = await axios.get(
+        "https://qlcv-server.herokuapp.com/api/internals/getCount",
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+      let ResponseData: any = { ...res.data.data };
+      let total: number = ResponseData.tong;
+      if (total) {
+        let totalPage = Math.ceil(total / 6);
+        setTotalPages(totalPage);
+      }
+    } catch (e) {}
   };
 
   const getArrivesList = async () => {
     try {
       const res = await axios.get(
-        "https://qlcv-server.herokuapp.com/api/arrives/",
+        "https://qlcv-server.herokuapp.com/api/internals/",
         {
           headers: {
             Authorization: `Bearer ${loginReducer.token}`,
@@ -59,12 +77,13 @@ const ArrivesList = () => {
   React.useEffect(() => {
     if (loginReducer.token) {
       getArrivesList();
+      getListCount();
     }
   }, [loginReducer.token, loginReducer.reloadPageName]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Danh sách công văn đến</Text>
+      <Text style={styles.title}>Danh sách công văn nội bộ</Text>
       <View style={styles.addContainer}>
         <View style={{ flexDirection: "row" }}>
           <Input
@@ -92,16 +111,8 @@ const ArrivesList = () => {
           <DataTable.Title>Số hiệu</DataTable.Title>
           <DataTable.Title>Tên văn bản</DataTable.Title>
           <DataTable.Title>Ngày ký</DataTable.Title>
-          <DataTable.Title>Ngày đến</DataTable.Title>
-          <DataTable.Title>Nơi gửi</DataTable.Title>
-          <DataTable.Title
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            Tình trạng duyệt
-          </DataTable.Title>
+          <DataTable.Title>Ngày lưu</DataTable.Title>
+          <DataTable.Title>Tình trạng duyệt</DataTable.Title>
           <DataTable.Title
             style={{
               flexDirection: "row",
@@ -122,20 +133,8 @@ const ArrivesList = () => {
                 <DataTable.Cell>{item.sohieu}</DataTable.Cell>
                 <DataTable.Cell>{item.tenvb}</DataTable.Cell>
                 <DataTable.Cell>{item.ngayky}</DataTable.Cell>
-                <DataTable.Cell style={styles.row}>
-                  {item.ngayden}
-                </DataTable.Cell>
-                <DataTable.Cell style={styles.row}>
-                  {item.noigui}
-                </DataTable.Cell>
-                <DataTable.Cell
-                  style={{
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {item.tinhtrangduyet}
-                </DataTable.Cell>
+                <DataTable.Cell>{item.ngayluu}</DataTable.Cell>
+                <DataTable.Cell>{item.tinhtrangduyet}</DataTable.Cell>
                 <DataTable.Cell
                   style={{
                     flexDirection: "row",
@@ -154,7 +153,7 @@ const ArrivesList = () => {
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.button}
-                    onPress={() => goToArriveDetail(item.maVB)}
+                    onPress={() => goToDetail(item.maVB)}
                   >
                     <Text style={styles.row}>Xem</Text>
                   </TouchableOpacity>
@@ -181,7 +180,7 @@ const ArrivesList = () => {
   );
 };
 
-export default ArrivesList;
+export default InternalsList;
 
 const styles = StyleSheet.create({
   container: {
@@ -212,7 +211,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     flex: 1,
-    justifyContent: "space-around",
+    justifyContent: "space-between",
   },
   row: {
     flex: 1,

@@ -14,11 +14,14 @@ import { getLoginToken } from "../../redux/actions/AuthActions";
 import { IRootState } from "../../redux/reducers";
 import { Button } from "react-native-elements";
 import { Input } from "react-native-elements";
+import { DataTable } from "react-native-paper";
 
 const DispatchesList = () => {
   const dispatch = useDispatch();
   const { loginReducer } = useSelector((state: IRootState) => state);
   const [DispatchesList, setDispatchesList] = React.useState<any>();
+  const [page, setPage] = React.useState<number>(0);
+  const [totalPages, setTotalPages] = React.useState<any>(1);
   const linkTo = useLinkTo();
 
   const goToDispatchDetail = (id: any) => {
@@ -62,7 +65,7 @@ const DispatchesList = () => {
     }
   }, [loginReducer.token, loginReducer.reloadPageName]);
 
-  return DispatchesList ? (
+  return (
     <View style={styles.container}>
       <Text style={styles.title}>Danh sách công văn đi</Text>
       <View style={styles.addContainer}>
@@ -86,47 +89,103 @@ const DispatchesList = () => {
           onPress={toCreate}
         />
       </View>
-      <View style={styles.table}>
-        <Text style={styles.row}>Ký hiệu</Text>
-        <Text style={styles.row}>Số hiệu</Text>
-        <Text style={styles.row}>Tên văn bản</Text>
-        <Text style={styles.row}>Ngày ký</Text>
-        <Text style={styles.row}>Ngày đi</Text>
-        <Text style={styles.row}>Nơi nhận</Text>
-        <Text style={styles.row}> Tình trạng duyệt</Text>
-        <Text style={styles.row}>Thao tác</Text>
-      </View>
-      <FlatList
-        data={DispatchesList}
-        keyExtractor={(item) => item.maVB + ""}
-        renderItem={({ item }) => (
-          <View style={styles.table}>
-            <Text style={styles.row}>{item.kyhieu}</Text>
-            <Text style={styles.row}>{item.sohieu}</Text>
-            <Text style={styles.row}>{item.tenvb}</Text>
-            <Text style={styles.row}>{item.ngayky}</Text>
-            <Text style={styles.row}>{item.ngaydi}</Text>
-            <Text style={styles.row}>{item.cqnhan}</Text>
-            <Text style={styles.row}>{item.tinhtrangduyet}</Text>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                onPress={() => {
-                  goToUpdateDispatch(item.maVB, item.maND);
-                }}
-              >
-                <Text style={styles.row}>Sửa</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => goToDispatchDetail(item.maVB)}>
-                <Text style={styles.row}>Xem</Text>
-              </TouchableOpacity>
-            </View>
+      <DataTable>
+        <DataTable.Header>
+          <DataTable.Title>Ký hiệu</DataTable.Title>
+          <DataTable.Title>Số hiệu</DataTable.Title>
+          <DataTable.Title>Tên văn bản</DataTable.Title>
+          <DataTable.Title>Ngày ký</DataTable.Title>
+          <DataTable.Title>Ngày đi</DataTable.Title>
+          <DataTable.Title>Nơi nhận</DataTable.Title>
+          <DataTable.Title
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            Tình trạng duyệt
+          </DataTable.Title>
+          <DataTable.Title
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            Thao tác
+          </DataTable.Title>
+        </DataTable.Header>
+        {DispatchesList ? (
+          <FlatList
+            data={DispatchesList}
+            keyExtractor={(item) => item.maVB + ""}
+            renderItem={({ item }) => (
+              <DataTable.Row>
+                <DataTable.Cell>{item.kyhieu}</DataTable.Cell>
+                <DataTable.Cell>{item.sohieu}</DataTable.Cell>
+                <DataTable.Cell>{item.tenvb}</DataTable.Cell>
+                <DataTable.Cell>{item.ngayky}</DataTable.Cell>
+                <DataTable.Cell style={styles.row}>
+                  {item.ngaydi}
+                </DataTable.Cell>
+                <DataTable.Cell style={styles.row}>
+                  {item.cqnhan}
+                </DataTable.Cell>
+                <DataTable.Cell
+                  style={{
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {item.tinhtrangduyet}
+                </DataTable.Cell>
+                <DataTable.Cell
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => {
+                      goToUpdateDispatch(item.maVB, item.maND);
+                    }}
+                  >
+                    <Text style={styles.row}>Sửa</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => goToDispatchDetail(item.maVB)}
+                  >
+                    <Text style={styles.row}>Xem</Text>
+                  </TouchableOpacity>
+                  {loginReducer.isAdmin == 1 && (
+                    <TouchableOpacity
+                      style={styles.button}
+                      onPress={() => goToDispatchDetail(item.maVB)}
+                    >
+                      <Text style={styles.row}>Xóa</Text>
+                    </TouchableOpacity>
+                  )}
+                </DataTable.Cell>
+              </DataTable.Row>
+            )}
+          />
+        ) : (
+          <View style={styles.container}>
+            <ActivityIndicator size="large" color="#00ff00" />
           </View>
         )}
-      />
-    </View>
-  ) : (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color="#00ff00" />
+
+        <DataTable.Pagination
+          page={page}
+          numberOfPages={totalPages}
+          onPageChange={(page) => setPage(page)}
+          label={`Trang ${page + 1}`}
+          showFastPaginationControls
+        />
+      </DataTable>
     </View>
   );
 };
@@ -179,5 +238,8 @@ const styles = StyleSheet.create({
     // alignItems: "center",
     borderColor: "rgba(154,154,154, .5)",
     borderTopWidth: 0.5,
+  },
+  button: {
+    paddingHorizontal: 8,
   },
 });

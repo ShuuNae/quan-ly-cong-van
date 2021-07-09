@@ -172,6 +172,7 @@ const styles = StyleSheet.create({
   textInputContainer: {
     flexDirection: "row",
     paddingTop: "3%",
+    paddingBottom: 10,
     // marginHorizontal: "15%",
   },
 
