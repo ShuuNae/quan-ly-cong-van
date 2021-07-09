@@ -55,10 +55,32 @@ const ArrivesList = () => {
       setDispatchesList(null);
     }
   };
+  const getListPagination = async () => {
+    try {
+      const res = await axios.get(
+        "https://qlcv-server.herokuapp.com/api/internals/pagination",
+        {
+          params: {
+            page: page,
+          },
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+      console.log(res);
+      let ResponseData = [...res.data.data];
+      console.log(ResponseData);
+      setDispatchesList(ResponseData);
+    } catch (e) {
+      setDispatchesList(null);
+    }
+  };
 
   React.useEffect(() => {
     if (loginReducer.token) {
       getArrivesList();
+      // getListPagination();
     }
   }, [loginReducer.token, loginReducer.reloadPageName]);
 
