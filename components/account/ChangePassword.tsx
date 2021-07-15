@@ -9,6 +9,7 @@ import TextContainer from "../TextContainer";
 import { Input, Button } from "react-native-elements";
 import { useLinkTo } from "@react-navigation/native";
 import fastMessage from "../FastMessage";
+import { logout } from "../../redux/actions/AuthActions";
 
 const ChangePassword = () => {
   const { loginReducer } = useSelector((state: IRootState) => state);
@@ -46,6 +47,7 @@ const ChangePassword = () => {
       if (res.status === 200) {
         setLoading(false);
         fastMessage("Cập nhật thành công!", "success");
+        dispatch(logout());
       } else {
         fastMessage("Cập nhật thất bại!", "danger");
         setLoading(false);
