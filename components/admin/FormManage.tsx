@@ -1,34 +1,124 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  Modal,
+} from "react-native";
 import { loginReducer } from "../../redux/reducers/loginReducer";
 import { IRootState } from "../../redux/reducers";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import TextContainer from "../TextContainer";
-import { useLinkTo } from "@react-navigation/native";
-import { Button } from "react-native-elements";
+import { useLinkTo, useIsFocused } from "@react-navigation/native";
+import { Button, Overlay } from "react-native-elements";
 import { Input } from "react-native-elements";
 import { DataTable } from "react-native-paper";
+import fastMessage from "../FastMessage";
 
 const FormManage = () => {
   const { loginReducer } = useSelector((state: IRootState) => state);
   const linkTo = useLinkTo();
-
-  const toAddAccount = () => {
-    linkTo("/them-tai-khoan");
-  };
-  const toUpdateAccount = () => {
-    linkTo("/cap-nhat-tai-khoan-admin");
-  };
-
+  const isFocused = useIsFocused();
+  const [userList, setUserList] = React.useState<any>();
+  const [selectedId, setSelectedId] = React.useState<any>();
+  const [visible, setVisible] = React.useState(false);
   const [page, setPage] = React.useState<number>(0);
 
+  const toggleOverlay = () => {
+    setVisible((prevState) => !prevState);
+  };
+
+  const toggleToDelete = (id: any) => {
+    toggleOverlay();
+    setSelectedId(id);
+  };
+  const toAddAccount = () => {
+    linkTo("/them-bieu-mau");
+  };
+  const toUpdateAccount = (id: any) => {
+    linkTo("/cap-nhat-bieu-mau/" + id);
+  };
+
+  const deleteItem = async (id: any) => {
+    try {
+      let res = await axios.delete(
+        "https://qlcv-server.herokuapp.com/api/forms/",
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+          data: {
+            maBM: id,
+          },
+        }
+      );
+      console.log(res);
+      if (res.data.success == 1) {
+        getUserList();
+        toggleOverlay();
+        fastMessage("Xóa thành công!", "success");
+      } else {
+        fastMessage("Xóa thất bại!", "danger");
+      }
+    } catch (err) {
+      fastMessage("Xóa thất bại!", "danger");
+    }
+  };
+  const getUserList = async () => {
+    try {
+      const res = await axios.get(
+        "https://qlcv-server.herokuapp.com/api/forms/",
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+      let ResponseData = [...res.data.data];
+      console.log(ResponseData);
+      setUserList(ResponseData);
+    } catch (e) {
+      setUserList(null);
+    }
+  };
+
   React.useEffect(() => {
-    console.log(page);
-  }, [page]);
+    if (loginReducer.token) {
+      getUserList();
+    }
+  }, [loginReducer.token, loginReducer.reloadPageName, page, isFocused]);
 
   return (
     <View style={styles.container}>
+      <Overlay
+        ModalComponent={Modal}
+        isVisible={visible}
+        onBackdropPress={toggleOverlay}
+        overlayStyle={{ paddingHorizontal: 20 }}
+      >
+        <Text style={{ paddingTop: 5, paddingBottom: 35, fontSize: 16 }}>
+          Bạn có muốn xóa công văn này?
+        </Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Button
+            title="Xóa"
+            containerStyle={{ width: "40%" }}
+            buttonStyle={{ backgroundColor: "#bb2124" }}
+            onPress={() => {
+              deleteItem(selectedId);
+            }}
+          />
+          <Button
+            title="Hủy"
+            containerStyle={{ width: "40%" }}
+            onPress={toggleOverlay}
+          />
+        </View>
+      </Overlay>
       <Text style={styles.title}>Danh sách biểu mẫu</Text>
       <View style={styles.addContainer}>
         <View style={{ flexDirection: "row" }}>
@@ -52,39 +142,62 @@ const FormManage = () => {
           <DataTable.Header>
             <DataTable.Title>Tên biểu mẫu</DataTable.Title>
             <DataTable.Title>Số lượng</DataTable.Title>
-            <DataTable.Title>Ghi chú</DataTable.Title>
-            <DataTable.Title>Thao tác</DataTable.Title>
+            <DataTable.Title
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              Thao tác
+            </DataTable.Title>
           </DataTable.Header>
+          {userList ? (
+            <FlatList
+              data={userList}
+              keyExtractor={(item) => item.maBM + ""}
+              renderItem={({ item }) => (
+                <DataTable.Row>
+                  <DataTable.Cell>{item.tenBM}</DataTable.Cell>
+                  <DataTable.Cell>{item.soluong}</DataTable.Cell>
+                  <DataTable.Cell
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <TouchableOpacity
+                      style={styles.button}
+                      onPress={() => {
+                        toUpdateAccount(item.maBM);
+                      }}
+                    >
+                      <Text style={styles.row}>Sửa</Text>
+                    </TouchableOpacity>
 
-          <DataTable.Row>
-            <DataTable.Cell>Biểu mẫu 19</DataTable.Cell>
-            <DataTable.Cell>2</DataTable.Cell>
-            <DataTable.Cell>Không</DataTable.Cell>
-            <DataTable.Cell>Sửa | Xóa</DataTable.Cell>
-          </DataTable.Row>
-
-          <DataTable.Row>
-            <DataTable.Cell>Biểu mẫu 39</DataTable.Cell>
-            <DataTable.Cell>2</DataTable.Cell>
-            <DataTable.Cell>Không</DataTable.Cell>
-            <DataTable.Cell>Sửa | Xóa</DataTable.Cell>
-          </DataTable.Row>
+                    <TouchableOpacity
+                      style={styles.button}
+                      onPress={() => toggleToDelete(item.maBM)}
+                    >
+                      <Text style={styles.row}>Xóa</Text>
+                    </TouchableOpacity>
+                  </DataTable.Cell>
+                </DataTable.Row>
+              )}
+            />
+          ) : (
+            <View style={styles.container}>
+              <ActivityIndicator size="large" color="#00ff00" />
+            </View>
+          )}
 
           <DataTable.Pagination
             page={page}
-            numberOfPages={4}
+            numberOfPages={1}
             onPageChange={(page) => setPage(page)}
-            label="1-2 of 6"
             showFastPaginationControls
           />
         </DataTable>
-        {/* <Button
-          title="Thêm mới"
-          type="outline"
-          containerStyle={{ width: "10%" }}
-          titleStyle={{ fontSize: 16 }}
-          onPress={toUpdateAccount}
-        /> */}
       </View>
     </View>
   );
@@ -132,5 +245,15 @@ const styles = StyleSheet.create({
     // alignItems: "center",
     borderColor: "rgba(154,154,154, .5)",
     borderTopWidth: 0.5,
+  },
+  button: {
+    paddingHorizontal: 8,
+  },
+  row: {
+    flex: 1,
+    fontSize: 16,
+    paddingHorizontal: 2,
+    paddingVertical: 5,
+    textAlign: "center",
   },
 });

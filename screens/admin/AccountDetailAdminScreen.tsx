@@ -3,16 +3,16 @@ import {
   StyleSheet,
   Text,
   View,
+  ScrollView,
   Dimensions,
   ImageBackground,
 } from "react-native";
-import { useLinkTo } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
-import { IRootState } from "../../redux/reducers";
-import UpdateArrive from "../../components/arrives/UpdateArrive";
-import { loginReducer } from "../../redux/reducers/loginReducer";
+import DispatchDetail from "../../components/dispatches/DispatchDetail";
 import NavBar from "../../components/NavBar";
-import UpdateAccount from "../../components/admin/UpdateAccount";
+import { IRootState } from "../../redux/reducers";
+import ArriveDetail from "../../components/arrives/ArriveDetail";
+import AccountDetail from "../../components/admin/AccountDetail";
 
 const HEIGHT = Dimensions.get("window").height;
 
@@ -21,11 +21,9 @@ interface IProps {
   route: any;
 }
 
-const UpdateAccountScreen = (props: IProps) => {
+const AccountDetailAdminScreen = (props: IProps) => {
   const { loginReducer } = useSelector((state: IRootState) => state);
-  const linkTo = useLinkTo();
   const id = props.route.params.id;
-
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -36,27 +34,31 @@ const UpdateAccountScreen = (props: IProps) => {
           <NavBar />
         </View>
         <View style={styles.middle}>
-          <UpdateAccount id={id} />
+          <AccountDetail id={id} />
         </View>
       </ImageBackground>
     </View>
   );
 };
 
-export default UpdateAccountScreen;
+export default AccountDetailAdminScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    height: HEIGHT * 1.6,
+    height: HEIGHT * 1.1,
+    // height: HEIGHT + 500,
+    // in case u want to expand the screen height, use this
   },
   header: {
+    // flex: 0.5,
     height: HEIGHT / 13.5,
   },
   image: {
     flex: 1,
     resizeMode: "cover",
   },
+
   middle: {
     flex: 8,
     flexDirection: "row",

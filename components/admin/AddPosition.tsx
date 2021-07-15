@@ -5,7 +5,6 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { Input, Button } from "react-native-elements";
@@ -20,13 +19,16 @@ import { useLinkTo } from "@react-navigation/native";
 import { reloadPage } from "../../redux/actions/AuthActions";
 import fastMessage from "../FastMessage";
 
-const UpdateInfo = () => {
+///////////////////////IF U WANT SET MAX DAY FOR INPUT DATE ////////////////////
+// const day = new Date().toISOString().split("T")[0];
+// console.log(day);
+////////////////////////////////////////////////////////////////////////////////
+
+const AddPosition = () => {
   const { loginReducer } = useSelector((state: IRootState) => state);
   const [positionList, setPositionList] = React.useState<any>();
   const [departmentList, setDepartmentList] = React.useState<any>();
   const [loading, setLoading] = React.useState<boolean>(false);
-  const [error, setError] = React.useState<boolean>(false);
-  const [arriveDetail, setDispatchDetail] = React.useState<any>();
   const dispatch = useDispatch();
   const linkTo = useLinkTo();
 
@@ -37,20 +39,15 @@ const UpdateInfo = () => {
   } = useForm();
 
   const onSubmit = (data: any) => {
-    data.maND = arriveDetail.maND;
-    data.taikhoan = arriveDetail.taikhoan;
-    data.trangthailamviec = arriveDetail.trangthailamviec;
-    data.maPB = arriveDetail.maPB;
-    data.maCV = arriveDetail.maCV;
-    data.isAdmin = arriveDetail.isAdmin;
-    updateAccount(data);
+    data.trangthai = 1;
+    createAccount(data);
   };
 
-  const updateAccount = async (data: any) => {
+  const createAccount = async (data: any) => {
     try {
       setLoading(true);
-      let res = await axios.patch(
-        "https://qlcv-server.herokuapp.com/api/users",
+      let res = await axios.post(
+        "https://qlcv-server.herokuapp.com/api/positions",
         data,
         {
           headers: {
@@ -60,48 +57,21 @@ const UpdateInfo = () => {
       );
       if (res.status === 200) {
         setLoading(false);
-        fastMessage("Cập nhật thành công!", "success");
-        linkTo("/tai-khoan/thong-tin-tai-khoan");
+        fastMessage("Tạo thành công!", "success");
+        linkTo("/quan-tri-vien/quan-ly-chuc-vu");
       } else {
-        fastMessage("Cập nhật thất bại!", "danger");
+        fastMessage("Tạo thất bại!", "danger");
         setLoading(false);
       }
     } catch (e) {
-      fastMessage("Cập nhật thất bại!", "danger");
+      fastMessage("Tạo thất bại!", "danger");
       setLoading(false);
     }
   };
 
-  const getArrive = async () => {
-    try {
-      const res = await axios.get(
-        "https://qlcv-server.herokuapp.com/api/users/" + loginReducer.userId,
-        {
-          headers: {
-            Authorization: `Bearer ${loginReducer.token}`,
-          },
-        }
-      );
-      if (res.data.success == 1) {
-        let responseData = { ...res.data.data };
-        setDispatchDetail(responseData);
-      } else {
-        setError(true);
-      }
-    } catch (e) {
-      setError(true);
-      setDispatchDetail(null);
-    }
-  };
-  React.useEffect(() => {
-    if (loginReducer.token) {
-      getArrive();
-    }
-  }, [loginReducer.token]);
-
-  return arriveDetail ? (
+  return (
     <View style={styles.container}>
-      <Text style={styles.title}>Cập nhật thông tin tài khoản</Text>
+      <Text style={styles.title}>Thêm chức vụ</Text>
       <View style={styles.infoContainer}>
         <Controller
           control={control}
@@ -111,51 +81,14 @@ const UpdateInfo = () => {
               containerStyle={styles.inputContainer}
               onChangeText={(value) => onChange(value)}
               value={value}
-              errorMessage={errors.hoten && "Không được để trống"}
-              label="Họ và tên"
+              errorMessage={errors.tencv && "Không được để trống"}
+              label="Tên chức vụ"
             />
           )}
-          name="hoten"
+          name="tencv"
           rules={{ required: true }}
-          defaultValue={arriveDetail.hoten || ""}
+          defaultValue=""
         />
-        <Controller
-          control={control}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <View style={styles.inputWrapContainer}>
-              <Text style={styles.labelStyle}>Năm sinh</Text>
-              <DateTimePicker
-                value={value}
-                onChange={onChange}
-                style={{ paddingVertical: 3.5 }}
-              />
-            </View>
-          )}
-          name="namsinh"
-          rules={{ required: true }}
-          defaultValue={arriveDetail.namsinh || ""}
-        />
-        {errors.namsinh && <Text>Không được để trống</Text>}
-        <Controller
-          control={control}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <View style={styles.inputWrapContainer}>
-              <Text style={styles.labelStyle}>Giới tính</Text>
-              <Picker
-                style={styles.itemPicker}
-                selectedValue={value}
-                onValueChange={(itemValue, itemIndex) => onChange(itemValue)}
-              >
-                <Picker.Item label="Nam" value={1} />
-                <Picker.Item label="Nữ" value={2} />
-              </Picker>
-            </View>
-          )}
-          name="gioitinh"
-          rules={{ required: true }}
-          defaultValue={arriveDetail.gioitinh || ""}
-        />
-        {errors.gioitinh && <Text>Không được để trống</Text>}
         <Controller
           control={control}
           render={({ field: { onChange, onBlur, value } }) => (
@@ -164,30 +97,44 @@ const UpdateInfo = () => {
               containerStyle={styles.inputContainer}
               onChangeText={(value) => onChange(value)}
               value={value}
-              errorMessage={errors.diachi && "Không được để trống"}
-              label="Địa chỉ"
+              errorMessage={errors.ghichu && "Không được để trống"}
+              label="Ghi chú"
             />
           )}
-          name="diachi"
+          name="ghichu"
           rules={{ required: true }}
-          defaultValue={arriveDetail.diachi || ""}
+          defaultValue=""
+        />
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.inputWrapContainer}>
+              <Text style={styles.labelStyle}>Quyền duyệt</Text>
+              <Picker
+                style={styles.itemPicker}
+                selectedValue={value}
+                onValueChange={(itemValue, itemIndex) => onChange(itemValue)}
+              >
+                <Picker.Item label="Không" value={0} />
+                <Picker.Item label="Duyệt phòng ban" value={1} />
+                <Picker.Item label="Duyệt cơ quan" value={2} />
+              </Picker>
+            </View>
+          )}
+          name="quyenduyet"
+          rules={{ required: true }}
+          defaultValue="0"
         />
       </View>
       {loading ? (
         <Button
-          containerStyle={{
-            width: "20%",
-            borderLeftWidth: 0.5,
-            borderRightWidth: 0.5,
-            borderColor: "rgba(154,154,154, .3)",
-            margin: 10,
-          }}
+          containerStyle={styles.submitButton}
           title="Loading button"
           loading
         />
       ) : (
         <Button
-          title="Cập nhật"
+          title="Tạo"
           type="outline"
           containerStyle={{
             width: "20%",
@@ -202,18 +149,10 @@ const UpdateInfo = () => {
         />
       )}
     </View>
-  ) : error ? (
-    <View style={styles.container}>
-      <Text>Không có dữ liệu</Text>
-    </View>
-  ) : (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color="#00ff00" />
-    </View>
   );
 };
 
-export default UpdateInfo;
+export default AddPosition;
 
 const styles = StyleSheet.create({
   container: {

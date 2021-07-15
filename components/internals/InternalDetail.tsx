@@ -17,6 +17,8 @@ import { IRootState } from "../../redux/reducers";
 import { Entypo } from "@expo/vector-icons";
 import TextContainer from "../TextContainer";
 import { path, secretLevel, urgency } from "../../assets/data";
+import { Input, Button } from "react-native-elements";
+import fastMessage from "../FastMessage";
 
 interface IProp {
   id: number;
@@ -27,6 +29,7 @@ const InternalDetail = (props: IProp) => {
   const [arriveDetail, setDispatchDetail] = React.useState<any>();
   const [error, setError] = React.useState<boolean>(false);
   const [fileType, setFileType] = React.useState<string>("no-file");
+  const [failed, setFailed] = React.useState<boolean>(false);
 
   const getDownloadUrl = async () => {
     if (arriveDetail.tentailieu) {
@@ -72,6 +75,60 @@ const InternalDetail = (props: IProp) => {
       }
     } catch (e) {
       setDispatchDetail(null);
+    }
+  };
+
+  const approve = async (tinhtrangduyet: any, id: any) => {
+    let data: any = {};
+    data.tinhtrangduyet = tinhtrangduyet;
+    data.maVB = id;
+    try {
+      let res = await axios.patch(
+        "https://qlcv-server.herokuapp.com/api/internals/approve",
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+      console.log(res);
+      if (res.status === 200) {
+        getArrive();
+        saveApproveLog();
+        fastMessage("Duyệt thành công!", "success");
+      } else {
+        setFailed(true);
+        fastMessage("Duyệt thất bại!", "danger");
+      }
+    } catch (e) {
+      setFailed(true);
+      fastMessage("Duyệt thất bại!", "danger");
+      return e;
+    }
+  };
+
+  const saveApproveLog = async () => {
+    let data: any = {};
+    let day = new Date();
+    let dayTime = day.toLocaleString();
+    data.maCVNB = arriveDetail.maVB;
+    data.maND = loginReducer.userId;
+    data.thoigianduyet = dayTime;
+    try {
+      let res = await axios.post(
+        "https://qlcv-server.herokuapp.com/api/approves",
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+      console.log(res);
+    } catch (e) {
+      setFailed(true);
+      return e;
     }
   };
 
@@ -136,11 +193,22 @@ const InternalDetail = (props: IProp) => {
           </Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={{ alignSelf: "center" }}>
-          <Text>Duyệt</Text>
-        </TouchableOpacity>
-      </View>
+      {loginReducer.data.quyenduyet == 1 &&
+      arriveDetail.tinhtrangduyet == "Chưa duyệt" ? (
+        <Button
+          title="Duyệt"
+          containerStyle={styles.buttonContainer}
+          onPress={() => approve("Phòng ban đã duyệt", arriveDetail.maVB)}
+        />
+      ) : null}
+      {loginReducer.data.quyenduyet == 2 &&
+      arriveDetail.tinhtrangduyet == "Phòng ban đã duyệt" ? (
+        <Button
+          title="Duyệt"
+          containerStyle={styles.buttonContainer}
+          onPress={() => approve("Cơ quan đã duyệt", arriveDetail.maVB)}
+        />
+      ) : null}
     </View>
   ) : error ? (
     <View style={styles.container}>
@@ -206,12 +274,9 @@ const styles = StyleSheet.create({
     paddingTop: 5,
   },
   buttonContainer: {
-    borderTopWidth: 0.5,
-    borderColor: "rgba(154,154,154, .5)",
-    paddingHorizontal: 15,
-    paddingTop: 5,
-    justifyContent: "center",
-    // alignItems: "center",
+    width: "10%",
+    alignSelf: "center",
+    padding: 5,
   },
   image: {
     width: 90,

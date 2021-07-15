@@ -9,10 +9,14 @@ import {
 import { useLinkTo } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { IRootState } from "../../redux/reducers";
-import UpdateArrive from "../../components/arrives/UpdateArrive";
+import UpdateDispatch from "../../components/dispatches/UpdateDispatch";
 import { loginReducer } from "../../redux/reducers/loginReducer";
 import NavBar from "../../components/NavBar";
-import UpdateAccount from "../../components/admin/UpdateAccount";
+import ArrivesList from "../../components/arrives/ArrivesList";
+import AddAccount from "../../components/admin/AddAccount";
+import AddDocument from "../../components/admin/AddDocument";
+import AddForm from "../../components/admin/AddForm";
+import AddPosition from "../../components/admin/AddPosition";
 
 const HEIGHT = Dimensions.get("window").height;
 
@@ -21,11 +25,8 @@ interface IProps {
   route: any;
 }
 
-const UpdateAccountScreen = (props: IProps) => {
+const AddPositionScreen = (props: IProps) => {
   const { loginReducer } = useSelector((state: IRootState) => state);
-  const linkTo = useLinkTo();
-  const id = props.route.params.id;
-
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -36,19 +37,19 @@ const UpdateAccountScreen = (props: IProps) => {
           <NavBar />
         </View>
         <View style={styles.middle}>
-          <UpdateAccount id={id} />
+          <AddPosition />
         </View>
       </ImageBackground>
     </View>
   );
 };
 
-export default UpdateAccountScreen;
+export default AddPositionScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    height: HEIGHT * 1.6,
+    // height: HEIGHT * 1.6,
   },
   header: {
     height: HEIGHT / 13.5,

@@ -7,14 +7,16 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
+  Modal,
 } from "react-native";
-import { useLinkTo } from "@react-navigation/native";
+import { useLinkTo, useIsFocused } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { getLoginToken } from "../../redux/actions/AuthActions";
 import { IRootState } from "../../redux/reducers";
-import { Button } from "react-native-elements";
+import { Button, Overlay } from "react-native-elements";
 import { Input } from "react-native-elements";
 import { DataTable } from "react-native-paper";
+import fastMessage from "../FastMessage";
 
 const InternalsList = () => {
   const dispatch = useDispatch();
@@ -23,9 +25,21 @@ const InternalsList = () => {
   const linkTo = useLinkTo();
   const [page, setPage] = React.useState<number>(0);
   const [totalPages, setTotalPages] = React.useState<any>(1);
+  const isFocused = useIsFocused();
+  const [selectedId, setSelectedId] = React.useState<any>();
+  const [visible, setVisible] = React.useState(false);
   const goToDetail = (id: any) => {
     linkTo("/chi-tiet-cong-van-noi-bo/" + id);
     // console.log("/cong-van-di/" + id);
+  };
+
+  const toggleOverlay = () => {
+    setVisible((prevState) => !prevState);
+  };
+
+  const toggleToDelete = (id: any) => {
+    toggleOverlay();
+    setSelectedId(id);
   };
 
   const toCreate = () => {
@@ -34,6 +48,33 @@ const InternalsList = () => {
 
   const goToUpdateArrive = (id: any, userId: any) => {
     linkTo(`/cap-nhat-cong-van-noi-bo/${id}/${userId}`);
+  };
+
+  const deleteItem = async (id: any) => {
+    try {
+      let res = await axios.delete(
+        "https://qlcv-server.herokuapp.com/api/internals/",
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+          data: {
+            maVB: id,
+          },
+        }
+      );
+      console.log(res);
+      if (res.data.success == 1) {
+        getListPagination();
+        getListCount();
+        toggleOverlay();
+        fastMessage("Xóa thành công!", "success");
+      } else {
+        fastMessage("Xóa thất bại!", "danger");
+      }
+    } catch (err) {
+      fastMessage("Xóa thất bại!", "danger");
+    }
   };
 
   const getListCount = async () => {
@@ -102,104 +143,142 @@ const InternalsList = () => {
       getListPagination();
       getListCount();
     }
-  }, [loginReducer.token, loginReducer.reloadPageName, page]);
+  }, [loginReducer.token, loginReducer.reloadPageName, page, isFocused]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Danh sách công văn nội bộ</Text>
-      <View style={styles.addContainer}>
-        <View style={{ flexDirection: "row" }}>
-          <Input
-            placeholder="Tìm kiếm"
-            // leftIcon={<Icon name="user" size={24} color="black" />}
+    <>
+      <Overlay
+        ModalComponent={Modal}
+        isVisible={visible}
+        onBackdropPress={toggleOverlay}
+        overlayStyle={{ paddingHorizontal: 20 }}
+      >
+        <Text style={{ paddingTop: 5, paddingBottom: 35, fontSize: 16 }}>
+          Bạn có muốn xóa công văn này?
+        </Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Button
+            title="Xóa"
+            containerStyle={{ width: "40%" }}
+            buttonStyle={{ backgroundColor: "#bb2124" }}
+            onPress={() => {
+              deleteItem(selectedId);
+            }}
           />
           <Button
-            title="Tìm kiếm"
-            type="outline"
-            // containerStyle={{ width: "10%" }}
-            titleStyle={{ fontSize: 16 }}
+            title="Hủy"
+            containerStyle={{ width: "40%" }}
+            onPress={toggleOverlay}
           />
         </View>
-        <Button
-          title="Thêm mới"
-          type="outline"
-          containerStyle={{ width: "10%" }}
-          titleStyle={{ fontSize: 16 }}
-          onPress={toCreate}
-        />
-      </View>
-      <DataTable>
-        <DataTable.Header>
-          <DataTable.Title>Ký hiệu</DataTable.Title>
-          <DataTable.Title>Số hiệu</DataTable.Title>
-          <DataTable.Title>Tên văn bản</DataTable.Title>
-          <DataTable.Title>Ngày ký</DataTable.Title>
-          <DataTable.Title>Ngày lưu</DataTable.Title>
-          <DataTable.Title>Tình trạng duyệt</DataTable.Title>
-          <DataTable.Title
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            Thao tác
-          </DataTable.Title>
-        </DataTable.Header>
-        {DispatchesList ? (
-          <FlatList
-            data={DispatchesList}
-            keyExtractor={(item) => item.maVB + ""}
-            renderItem={({ item }) => (
-              <DataTable.Row>
-                <DataTable.Cell>{item.kyhieu}</DataTable.Cell>
-                <DataTable.Cell>{item.sohieu}</DataTable.Cell>
-                <DataTable.Cell>{item.tenvb}</DataTable.Cell>
-                <DataTable.Cell>{item.ngayky}</DataTable.Cell>
-                <DataTable.Cell>{item.ngayluu}</DataTable.Cell>
-                <DataTable.Cell>{item.tinhtrangduyet}</DataTable.Cell>
-                <DataTable.Cell
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {/* <View style={styles.buttonContainer}> */}
-                  <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => {
-                      goToUpdateArrive(item.maVB, item.maND);
+      </Overlay>
+      <View style={styles.container}>
+        <Text style={styles.title}>Danh sách công văn nội bộ</Text>
+        <View style={styles.addContainer}>
+          <View style={{ flexDirection: "row" }}>
+            <Input
+              placeholder="Tìm kiếm"
+              // leftIcon={<Icon name="user" size={24} color="black" />}
+            />
+            <Button
+              title="Tìm kiếm"
+              type="outline"
+              // containerStyle={{ width: "10%" }}
+              titleStyle={{ fontSize: 16 }}
+            />
+          </View>
+          <Button
+            title="Thêm mới"
+            type="outline"
+            containerStyle={{ width: "10%" }}
+            titleStyle={{ fontSize: 16 }}
+            onPress={toCreate}
+          />
+        </View>
+        <DataTable>
+          <DataTable.Header>
+            <DataTable.Title>Ký hiệu</DataTable.Title>
+            <DataTable.Title>Số hiệu</DataTable.Title>
+            <DataTable.Title>Tên văn bản</DataTable.Title>
+            <DataTable.Title>Ngày ký</DataTable.Title>
+            <DataTable.Title>Ngày lưu</DataTable.Title>
+            <DataTable.Title>Tình trạng duyệt</DataTable.Title>
+            <DataTable.Title
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              Thao tác
+            </DataTable.Title>
+          </DataTable.Header>
+          {DispatchesList ? (
+            <FlatList
+              data={DispatchesList}
+              keyExtractor={(item) => item.maVB + ""}
+              renderItem={({ item }) => (
+                <DataTable.Row>
+                  <DataTable.Cell>{item.kyhieu}</DataTable.Cell>
+                  <DataTable.Cell>{item.sohieu}</DataTable.Cell>
+                  <DataTable.Cell>{item.tenvb}</DataTable.Cell>
+                  <DataTable.Cell>{item.ngayky}</DataTable.Cell>
+                  <DataTable.Cell>{item.ngayluu}</DataTable.Cell>
+                  <DataTable.Cell>{item.tinhtrangduyet}</DataTable.Cell>
+                  <DataTable.Cell
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    <Text style={styles.row}>Sửa</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => goToDetail(item.maVB)}
-                  >
-                    <Text style={styles.row}>Xem</Text>
-                  </TouchableOpacity>
-                  {/* </View> */}
-                </DataTable.Cell>
-              </DataTable.Row>
-            )}
-          />
-        ) : (
-          <View style={styles.container}>
-            <ActivityIndicator size="large" color="#00ff00" />
-          </View>
-        )}
+                    {/* <View style={styles.buttonContainer}> */}
+                    {item.maND == loginReducer.userId && (
+                      <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => {
+                          goToUpdateArrive(item.maVB, item.maND);
+                        }}
+                      >
+                        <Text style={styles.row}>Sửa</Text>
+                      </TouchableOpacity>
+                    )}
+                    <TouchableOpacity
+                      style={styles.button}
+                      onPress={() => goToDetail(item.maVB)}
+                    >
+                      <Text style={styles.row}>Xem</Text>
+                    </TouchableOpacity>
+                    {loginReducer.isAdmin == 1 && (
+                      <TouchableOpacity
+                        style={styles.button}
+                        // onPress={() => goToUpdateArrive(item.maVB)}
+                        onPress={() => toggleToDelete(item.maVB)}
+                      >
+                        <Text style={styles.row}>Xóa</Text>
+                      </TouchableOpacity>
+                    )}
+                    {/* </View> */}
+                  </DataTable.Cell>
+                </DataTable.Row>
+              )}
+            />
+          ) : (
+            <View style={styles.container}>
+              <ActivityIndicator size="large" color="#00ff00" />
+            </View>
+          )}
 
-        <DataTable.Pagination
-          page={page}
-          numberOfPages={totalPages}
-          onPageChange={(page) => setPage(page)}
-          label={`Trang ${page + 1} trên ${totalPages}`}
-          showFastPaginationControls
-        />
-      </DataTable>
-    </View>
+          <DataTable.Pagination
+            page={page}
+            numberOfPages={totalPages}
+            onPageChange={(page) => setPage(page)}
+            label={`Trang ${page + 1} trên ${totalPages}`}
+            showFastPaginationControls
+          />
+        </DataTable>
+      </View>
+    </>
   );
 };
 

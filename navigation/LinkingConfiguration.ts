@@ -5,6 +5,7 @@
  */
 
 import * as Linking from "expo-linking";
+import { path } from "../assets/data";
 
 export default {
   prefixes: [Linking.makeUrl("/")],
@@ -57,10 +58,18 @@ export default {
         path: "quan-tri-vien",
         screens: {
           "Quản lý tài khoản": "quan-ly-tai-khoan",
+          "Quản lý loại văn bản": "quan-ly-loai-van-ban",
+          "Quản lý biểu mẫu": "quan-ly-bieu-mau",
+          "Quản lý chức vụ": "quan-ly-chuc-vu",
+          "Quản lý phòng ban": "quan-ly-phong-ban",
+          "Quản lý cơ quan": "quan-ly-co-quan",
         },
       },
       AddAccount: "them-tai-khoan",
-      UpdateAccount: "cap-nhat-tai-khoan-admin",
+      UpdateAccount: { path: "cap-nhat-tai-khoan-admin/:id" },
+      AccountDetailAdmin: {
+        path: "chi-tiet-tai-khoan/:id",
+      },
       Internals: "cong-van-noi-bo",
       CreateInternal: "tao-cong-van-noi-bo",
       InternalDetail: {
@@ -69,6 +78,19 @@ export default {
       UpdateInternal: {
         path: "cap-nhat-cong-van-noi-bo/:id/:userId",
       },
+      AddDocument: "them-loai-van-ban",
+      UpdateDocument: {
+        path: "cap-nhat-loai-van-ban/:id",
+      },
+      AddForm: "them-bieu-mau",
+      UpdateForm: {
+        path: "cap-nhat-bieu-mau/:id",
+      },
+      AddPosition: "them-chuc-vu",
+      UpdatePosition: { path: "cap-nhat-chuc-vu/:id" },
+      AddDepartment: "them-phong-ban",
+      UpdateDepartment: { path: "cap-nhat-phong-ban/:id" },
+      UpdateOg: { path: "cap-nhat-co-quan/:id" },
     },
   },
 };

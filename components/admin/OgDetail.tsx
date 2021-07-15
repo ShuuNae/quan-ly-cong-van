@@ -5,7 +5,7 @@ import { IRootState } from "../../redux/reducers";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import TextContainer from "../TextContainer";
-import { useLinkTo } from "@react-navigation/native";
+import { useLinkTo, useIsFocused } from "@react-navigation/native";
 import { Button } from "react-native-elements";
 
 const AccountInformation = () => {
@@ -13,15 +13,16 @@ const AccountInformation = () => {
   const linkTo = useLinkTo();
   const [userList, setUserList] = React.useState<any>();
   const [error, setError] = React.useState<boolean>(false);
+  const isFocused = useIsFocused();
 
-  const toUpdateInfo = () => {
-    linkTo("/cap-nhat-tai-khoan");
+  const toUpdateInfo = (id: any) => {
+    linkTo("/cap-nhat-co-quan/" + id);
   };
 
-  const getUserDetails = async () => {
+  const getUserList = async () => {
     try {
       const res = await axios.get(
-        "https://qlcv-server.herokuapp.com/api/users/" + loginReducer.userId,
+        "https://qlcv-server.herokuapp.com/api/organizations/",
         {
           headers: {
             Authorization: `Bearer ${loginReducer.token}`,
@@ -30,7 +31,7 @@ const AccountInformation = () => {
       );
       if (res.data.success == 1) {
         let responseData = { ...res.data.data };
-        setUserList(responseData);
+        setUserList(responseData[1]);
       } else {
         setError(true);
       }
@@ -42,32 +43,19 @@ const AccountInformation = () => {
 
   React.useEffect(() => {
     if (loginReducer.token) {
-      getUserDetails();
+      getUserList();
     }
-  }, [loginReducer.token]);
+  }, [loginReducer.token, isFocused]);
 
   return userList ? (
     <View style={styles.container}>
-      <Text style={styles.title}>Thông tin tài khoản</Text>
+      <Text style={styles.title}>Thông tin cơ quan</Text>
       <View style={styles.infoContainer}>
-        <TextContainer title="Tên tài khoản" text={userList.taikhoan} />
-        <TextContainer title="Họ và tên" text={userList.hoten} />
-        <TextContainer
-          title="Giới tính"
-          text={userList.gioitinh == 1 ? "Nam" : "Nữ"}
-        />
-        <TextContainer title="Năm sinh" text={userList.namsinh} />
+        <TextContainer title="Tên cơ quan" text={userList.tencq} />
         <TextContainer title="Địa chỉ" text={userList.diachi} />
-        <TextContainer title="Chức vụ" text={userList.tencv} />
-        <TextContainer title="Phòng ban" text={userList.tenphong} />
-        <TextContainer
-          title="Trạng thái làm việc"
-          text={
-            userList.trangthailamviec == 1
-              ? "Đang hoạt động"
-              : "Ngừng hoạt động"
-          }
-        />
+        <TextContainer title="Điện thoại" text={userList.dienthoai} />
+        <TextContainer title="Email" text={userList.email} />
+        <TextContainer title="FAX" text={userList.fax} />
       </View>
       <Button
         title="Cập nhật thông tin"
@@ -81,7 +69,7 @@ const AccountInformation = () => {
         }}
         titleStyle={{ fontSize: 16, fontWeight: "bold" }}
         buttonStyle={{ padding: 5 }}
-        onPress={() => toUpdateInfo()}
+        onPress={() => toUpdateInfo(userList.maCQ)}
       />
     </View>
   ) : error ? (

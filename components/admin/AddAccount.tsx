@@ -17,6 +17,7 @@ import { path, secretLevel, urgency } from "../../assets/data";
 import * as DocumentPicker from "expo-document-picker";
 import { useLinkTo } from "@react-navigation/native";
 import { reloadPage } from "../../redux/actions/AuthActions";
+import fastMessage from "../FastMessage";
 
 ///////////////////////IF U WANT SET MAX DAY FOR INPUT DATE ////////////////////
 // const day = new Date().toISOString().split("T")[0];
@@ -25,83 +26,315 @@ import { reloadPage } from "../../redux/actions/AuthActions";
 
 const AddAccount = () => {
   const { loginReducer } = useSelector((state: IRootState) => state);
+  const [positionList, setPositionList] = React.useState<any>();
+  const [departmentList, setDepartmentList] = React.useState<any>();
+  const [loading, setLoading] = React.useState<boolean>(false);
   const dispatch = useDispatch();
   const linkTo = useLinkTo();
 
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const onSubmit = (data: any) => {
+    data.trangthailamviec = 1;
+    createAccount(data);
+  };
+
+  const createAccount = async (data: any) => {
+    try {
+      setLoading(true);
+      let res = await axios.post(
+        "https://qlcv-server.herokuapp.com/api/users",
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+      if (res.status === 200) {
+        setLoading(false);
+        fastMessage("Tạo thành công!", "success");
+        linkTo("/quan-tri-vien/quan-ly-tai-khoan");
+      } else {
+        fastMessage("Tạo thất bại!", "danger");
+        setLoading(false);
+      }
+    } catch (e) {
+      fastMessage("Tạo thất bại!", "danger");
+      setLoading(false);
+    }
+  };
+
+  const getPositionList = async () => {
+    try {
+      const res = await axios.get(
+        "https://qlcv-server.herokuapp.com/api/positions/",
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+
+      let responseData = [...res.data.data];
+      setPositionList(responseData);
+      console.log(responseData);
+    } catch (e) {
+      setPositionList(null);
+    }
+  };
+
+  const getDepartmentList = async () => {
+    try {
+      const res = await axios.get(
+        "https://qlcv-server.herokuapp.com/api/departments/",
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+
+      let responseData = [...res.data.data];
+      setDepartmentList(responseData);
+      console.log(responseData);
+    } catch (e) {
+      setDepartmentList(null);
+    }
+  };
+
+  const PositionList = () => {
+    if (positionList) {
+      return positionList.map((item: any) => {
+        return (
+          <Picker.Item
+            label={item.tencv}
+            value={item.maCV}
+            key={item.maCV + ""}
+          />
+        );
+      });
+    } else {
+      return <Picker.Item label="Đang tải" value="0" />;
+    }
+  };
+
+  const DepartmentList = () => {
+    if (departmentList) {
+      return departmentList.map((item: any) => {
+        return (
+          <Picker.Item
+            label={item.tenphong}
+            value={item.maPB}
+            key={item.maPB + ""}
+          />
+        );
+      });
+    } else {
+      return <Picker.Item label="Đang tải" value="0" />;
+    }
+  };
+
+  React.useEffect(() => {
+    if (loginReducer.token) {
+      getPositionList();
+      getDepartmentList();
+    }
+  }, [loginReducer.token]);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Cập nhật phòng ban</Text>
+      <Text style={styles.title}>Thêm tài khoản</Text>
       <View style={styles.infoContainer}>
-        <Input
-          style={styles.textInput}
-          containerStyle={styles.inputContainer}
-          value="Phòng kinh doanh"
-          label="Tên phòng ban"
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              style={styles.textInput}
+              containerStyle={styles.inputContainer}
+              onChangeText={(value) => onChange(value)}
+              value={value}
+              errorMessage={errors.taikhoan && "Không được để trống"}
+              label="Tên tài khoản"
+            />
+          )}
+          name="taikhoan"
+          rules={{ required: true }}
+          defaultValue=""
         />
-        <Input
-          style={styles.textInput}
-          containerStyle={styles.inputContainer}
-          value="Không"
-          label="Ghi chú"
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              style={styles.textInput}
+              containerStyle={styles.inputContainer}
+              onChangeText={(value) => onChange(value)}
+              value={value}
+              secureTextEntry={true}
+              errorMessage={errors.matkhau && "Không được để trống"}
+              label="Mật khẩu"
+            />
+          )}
+          name="matkhau"
+          rules={{ required: true }}
+          defaultValue=""
         />
-        {/* <View style={styles.inputWrapContainer}>
-          <Text style={styles.labelStyle}>Giới tính</Text>
-          <Picker style={styles.itemPicker} selectedValue="Nam">
-            <Picker.Item label="Nam" value={1} />
-          </Picker>
-        </View>
-        <View
-          style={{
-            width: "40%",
-            paddingHorizontal: 10,
-            paddingBottom: 10,
-          }}
-        >
-          <Text style={styles.labelStyle}>Năm sinh</Text>
-          <DateTimePicker
-            defaultValue="1992-09-05"
-            style={{ paddingVertical: 3.5 }}
-          />
-        </View>
-        <Input
-          style={styles.textInput}
-          containerStyle={styles.inputContainer}
-          value="15 Mai Xuân Thưởng, Nha Trang, Khánh Hòa"
-          label="Địa chỉ"
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              style={styles.textInput}
+              containerStyle={styles.inputContainer}
+              onChangeText={(value) => onChange(value)}
+              value={value}
+              errorMessage={errors.hoten && "Không được để trống"}
+              label="Họ và tên"
+            />
+          )}
+          name="hoten"
+          rules={{ required: true }}
+          defaultValue=""
         />
-        <View style={styles.inputWrapContainer}>
-          <Text style={styles.labelStyle}>Chức vụ</Text>
-          <Picker style={styles.itemPicker} selectedValue="Nhân viên">
-            <Picker.Item label="Nhân viên" value={1} />
-          </Picker>
-        </View>
-        <View style={styles.inputWrapContainer}>
-          <Text style={styles.labelStyle}>Phòng ban</Text>
-          <Picker style={styles.itemPicker} selectedValue="Phòng văn thư">
-            <Picker.Item label="Phòng văn thư" value={1} />
-          </Picker>
-        </View>
-        <View style={styles.inputWrapContainer}>
-          <Text style={styles.labelStyle}>Loại tài khoản</Text>
-          <Picker style={styles.itemPicker} selectedValue="Người dùng">
-            <Picker.Item label="Người dùng" value={1} />
-          </Picker>
-        </View> */}
-      </View>
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.inputWrapContainer}>
+              <Text style={styles.labelStyle}>Năm sinh</Text>
+              <DateTimePicker
+                value={value}
+                onChange={onChange}
+                style={{ paddingVertical: 3.5 }}
+              />
+            </View>
+          )}
+          name="namsinh"
+          rules={{ required: true }}
+          defaultValue=""
+        />
+        {errors.namsinh && <Text>Không được để trống</Text>}
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.inputWrapContainer}>
+              <Text style={styles.labelStyle}>Giới tính</Text>
+              <Picker
+                style={styles.itemPicker}
+                selectedValue={value}
+                onValueChange={(itemValue, itemIndex) => onChange(itemValue)}
+              >
+                <Picker.Item label="Nam" value={1} />
+                <Picker.Item label="Nữ" value={2} />
+              </Picker>
+            </View>
+          )}
+          name="gioitinh"
+          rules={{ required: true }}
+          defaultValue="1"
+        />
+        {errors.gioitinh && <Text>Không được để trống</Text>}
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              style={styles.textInput}
+              containerStyle={styles.inputContainer}
+              onChangeText={(value) => onChange(value)}
+              value={value}
+              errorMessage={errors.diachi && "Không được để trống"}
+              label="Địa chỉ"
+            />
+          )}
+          name="diachi"
+          rules={{ required: true }}
+          defaultValue=""
+        />
 
-      <Button
-        title="Cập nhật"
-        type="outline"
-        containerStyle={{
-          width: "20%",
-          borderLeftWidth: 0.5,
-          borderRightWidth: 0.5,
-          borderColor: "rgba(154,154,154, .3)",
-          margin: 10,
-        }}
-        titleStyle={{ fontSize: 16, fontWeight: "bold" }}
-        buttonStyle={{ padding: 5 }}
-      />
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.inputWrapContainer}>
+              <Text style={styles.labelStyle}>Chức vụ</Text>
+              <Picker
+                style={styles.itemPicker}
+                selectedValue={value}
+                onValueChange={(itemValue, itemIndex) => onChange(itemValue)}
+              >
+                <PositionList />
+              </Picker>
+            </View>
+          )}
+          name="maCV"
+          rules={{ required: true }}
+          defaultValue=""
+        />
+        {errors.maCV && <Text>Không được để trống</Text>}
+
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.inputWrapContainer}>
+              <Text style={styles.labelStyle}>Phòng ban</Text>
+              <Picker
+                style={styles.itemPicker}
+                selectedValue={value}
+                onValueChange={(itemValue, itemIndex) => onChange(itemValue)}
+              >
+                <DepartmentList />
+              </Picker>
+            </View>
+          )}
+          name="maPB"
+          rules={{ required: true }}
+          defaultValue=""
+        />
+        {errors.maPB && <Text>Không được để trống</Text>}
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.inputWrapContainer}>
+              <Text style={styles.labelStyle}>Loại tài khoản</Text>
+              <Picker
+                style={styles.itemPicker}
+                selectedValue={value}
+                onValueChange={(itemValue, itemIndex) => onChange(itemValue)}
+              >
+                <Picker.Item label="Người dùng" value={0} />
+                <Picker.Item label="Quản trị viên" value={1} />
+              </Picker>
+            </View>
+          )}
+          name="isAdmin"
+          rules={{ required: true }}
+          defaultValue="0"
+        />
+        {errors.isAdmin && <Text>Không được để trống</Text>}
+      </View>
+      {loading ? (
+        <Button
+          containerStyle={styles.submitButton}
+          title="Loading button"
+          loading
+        />
+      ) : (
+        <Button
+          title="Tạo"
+          type="outline"
+          containerStyle={{
+            width: "20%",
+            borderLeftWidth: 0.5,
+            borderRightWidth: 0.5,
+            borderColor: "rgba(154,154,154, .3)",
+            margin: 10,
+          }}
+          titleStyle={{ fontSize: 16, fontWeight: "bold" }}
+          buttonStyle={{ padding: 5 }}
+          onPress={handleSubmit(onSubmit)}
+        />
+      )}
     </View>
   );
 };

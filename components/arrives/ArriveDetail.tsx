@@ -1,22 +1,19 @@
 import axios from "axios";
 import React from "react";
 import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
   ActivityIndicator,
   Image,
-  Dimensions,
-  ImageBackground,
-  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { set } from "react-native-reanimated";
-import { useDispatch, useSelector } from "react-redux";
-import { IRootState } from "../../redux/reducers";
-import { Entypo } from "@expo/vector-icons";
-import TextContainer from "../TextContainer";
+import { Button } from "react-native-elements";
+import { useSelector } from "react-redux";
 import { path, secretLevel, urgency } from "../../assets/data";
+import { IRootState } from "../../redux/reducers";
+import fastMessage from "../FastMessage";
+import TextContainer from "../TextContainer";
 
 interface IProp {
   id: number;
@@ -27,6 +24,7 @@ const ArriveDetail = (props: IProp) => {
   const [arriveDetail, setDispatchDetail] = React.useState<any>();
   const [error, setError] = React.useState<boolean>(false);
   const [fileType, setFileType] = React.useState<string>("no-file");
+  const [failed, setFailed] = React.useState<boolean>(false);
 
   const getDownloadUrl = async () => {
     if (arriveDetail.tentailieu) {
@@ -67,11 +65,56 @@ const ArriveDetail = (props: IProp) => {
             setFileType(type);
           }
         }
-        console.log(responseData);
         setDispatchDetail(responseData);
       }
     } catch (e) {
       setDispatchDetail(null);
+    }
+  };
+
+  const approve = async (tinhtrangduyet: any, id: any) => {
+    let data: any = {};
+    data.tinhtrangduyet = tinhtrangduyet;
+    data.maVB = id;
+    try {
+      let res = await axios.patch(
+        "https://qlcv-server.herokuapp.com/api/arrives/approve",
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+      if (res.status === 200) {
+        getArrive();
+        saveApproveLog();
+        fastMessage("Duyệt thành công!", "success");
+      } else {
+        setFailed(true);
+        fastMessage("Duyệt thất bại!", "danger");
+      }
+    } catch (e) {
+      setFailed(true);
+      fastMessage("Duyệt thất bại!", "danger");
+    }
+  };
+
+  const saveApproveLog = async () => {
+    let data: any = {};
+    let day = new Date();
+    let dayTime = day.toLocaleString();
+    data.maVBDen = arriveDetail.maVB;
+    data.maND = loginReducer.userId;
+    data.thoigianduyet = dayTime;
+    try {
+      await axios.post("https://qlcv-server.herokuapp.com/api/approves", data, {
+        headers: {
+          Authorization: `Bearer ${loginReducer.token}`,
+        },
+      });
+    } catch (e) {
+      return e;
     }
   };
 
@@ -152,11 +195,22 @@ const ArriveDetail = (props: IProp) => {
           </Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={{ alignSelf: "center" }}>
-          <Text>Duyệt</Text>
-        </TouchableOpacity>
-      </View>
+      {loginReducer.data.quyenduyet == 1 &&
+      arriveDetail.tinhtrangduyet == "Chưa duyệt" ? (
+        <Button
+          title="Duyệt"
+          containerStyle={styles.buttonContainer}
+          onPress={() => approve("Phòng ban đã duyệt", arriveDetail.maVB)}
+        />
+      ) : null}
+      {loginReducer.data.quyenduyet == 0 &&
+      arriveDetail.tinhtrangduyet == "Phòng ban đã duyệt" ? (
+        <Button
+          title="Duyệt"
+          containerStyle={styles.buttonContainer}
+          onPress={() => approve("Cơ quan đã duyệt", arriveDetail.maVB)}
+        />
+      ) : null}
     </View>
   ) : error ? (
     <View style={styles.container}>
@@ -222,12 +276,9 @@ const styles = StyleSheet.create({
     paddingTop: 5,
   },
   buttonContainer: {
-    borderTopWidth: 0.5,
-    borderColor: "rgba(154,154,154, .5)",
-    paddingHorizontal: 15,
-    paddingTop: 5,
-    justifyContent: "center",
-    // alignItems: "center",
+    width: "10%",
+    alignSelf: "center",
+    padding: 5,
   },
   image: {
     width: 90,

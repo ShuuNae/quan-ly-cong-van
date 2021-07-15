@@ -1,20 +1,37 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { loginReducer } from "../../redux/reducers/loginReducer";
-import { IRootState } from "../../redux/reducers";
-import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 import { useForm, Controller } from "react-hook-form";
-import TextContainer from "../TextContainer";
 import { Input, Button } from "react-native-elements";
+import DateTimePicker from "../DateTimePicker";
+import { useDispatch, useSelector } from "react-redux";
+import { Picker } from "@react-native-picker/picker";
+import axios from "axios";
+import { IRootState } from "../../redux/reducers";
+import { path, secretLevel, urgency } from "../../assets/data";
+import * as DocumentPicker from "expo-document-picker";
 import { useLinkTo } from "@react-navigation/native";
+import { reloadPage } from "../../redux/actions/AuthActions";
 import fastMessage from "../FastMessage";
 
-const ChangePassword = () => {
+///////////////////////IF U WANT SET MAX DAY FOR INPUT DATE ////////////////////
+// const day = new Date().toISOString().split("T")[0];
+// console.log(day);
+////////////////////////////////////////////////////////////////////////////////
+
+const AddDocument = () => {
   const { loginReducer } = useSelector((state: IRootState) => state);
+  const [positionList, setPositionList] = React.useState<any>();
+  const [departmentList, setDepartmentList] = React.useState<any>();
   const [loading, setLoading] = React.useState<boolean>(false);
   const dispatch = useDispatch();
   const linkTo = useLinkTo();
+
   const {
     control,
     handleSubmit,
@@ -22,20 +39,15 @@ const ChangePassword = () => {
   } = useForm();
 
   const onSubmit = (data: any) => {
-    if (data.matkhaumoi === data.matkhaumoi2) {
-      data.taikhoan = loginReducer.data.taikhoan;
-      data.maND = loginReducer.userId;
-      updatePassword(data);
-    } else {
-      fastMessage("Xác nhận mật khẩu chưa khớp!", "danger");
-    }
+    data.trangthai = 1;
+    createAccount(data);
   };
 
-  const updatePassword = async (data: any) => {
+  const createAccount = async (data: any) => {
     try {
       setLoading(true);
-      let res = await axios.patch(
-        "https://qlcv-server.herokuapp.com/api/users/changePassword",
+      let res = await axios.post(
+        "https://qlcv-server.herokuapp.com/api/documentTypes",
         data,
         {
           headers: {
@@ -45,20 +57,21 @@ const ChangePassword = () => {
       );
       if (res.status === 200) {
         setLoading(false);
-        fastMessage("Cập nhật thành công!", "success");
+        fastMessage("Tạo thành công!", "success");
+        linkTo("/quan-tri-vien/quan-ly-loai-van-ban");
       } else {
-        fastMessage("Cập nhật thất bại!", "danger");
+        fastMessage("Tạo thất bại!", "danger");
         setLoading(false);
       }
     } catch (e) {
-      fastMessage("Cập nhật thất bại!", "danger");
+      fastMessage("Tạo thất bại!", "danger");
       setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Đổi mật khẩu</Text>
+      <Text style={styles.title}>Thêm loại văn bản</Text>
       <View style={styles.infoContainer}>
         <Controller
           control={control}
@@ -67,13 +80,12 @@ const ChangePassword = () => {
               style={styles.textInput}
               containerStyle={styles.inputContainer}
               onChangeText={(value) => onChange(value)}
-              secureTextEntry={true}
               value={value}
-              errorMessage={errors.matkhau && "Không được để trống"}
-              label="Nhập mật khẩu hiện tại"
+              errorMessage={errors.tenlvb && "Không được để trống"}
+              label="Tên loại văn bản"
             />
           )}
-          name="matkhau"
+          name="tenlvb"
           rules={{ required: true }}
           defaultValue=""
         />
@@ -84,49 +96,25 @@ const ChangePassword = () => {
               style={styles.textInput}
               containerStyle={styles.inputContainer}
               onChangeText={(value) => onChange(value)}
-              secureTextEntry={true}
               value={value}
-              errorMessage={errors.matkhaumoi && "Không được để trống"}
-              label="Nhập mật khẩu mới"
+              errorMessage={errors.ghichu && "Không được để trống"}
+              label="Ghi chú"
             />
           )}
-          name="matkhaumoi"
-          rules={{ required: true }}
-          defaultValue=""
-        />
-        <Controller
-          control={control}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <Input
-              style={styles.textInput}
-              containerStyle={styles.inputContainer}
-              secureTextEntry={true}
-              onChangeText={(value) => onChange(value)}
-              value={value}
-              errorMessage={errors.matkhaumoi2 && "Không được để trống"}
-              label="Xác nhận mật khẩu mới"
-            />
-          )}
-          name="matkhaumoi2"
+          name="ghichu"
           rules={{ required: true }}
           defaultValue=""
         />
       </View>
       {loading ? (
         <Button
-          containerStyle={{
-            width: "20%",
-            borderLeftWidth: 0.5,
-            borderRightWidth: 0.5,
-            borderColor: "rgba(154,154,154, .3)",
-            margin: 10,
-          }}
+          containerStyle={styles.submitButton}
           title="Loading button"
           loading
         />
       ) : (
         <Button
-          title="Đổi mật khẩu"
+          title="Tạo"
           type="outline"
           containerStyle={{
             width: "20%",
@@ -144,11 +132,11 @@ const ChangePassword = () => {
   );
 };
 
-export default ChangePassword;
+export default AddDocument;
 
 const styles = StyleSheet.create({
   container: {
-    margin: 5,
+    margin: 10,
     backgroundColor: "white",
     flex: 1,
     borderWidth: 0.5,
@@ -158,8 +146,16 @@ const styles = StyleSheet.create({
   title: {
     textTransform: "uppercase",
     fontSize: 22,
-    fontWeight: "bold",
     textAlign: "center",
+    paddingTop: 10,
+    paddingBottom: 10,
+    fontWeight: "bold",
+  },
+  contentContainer: {
+    borderBottomWidth: 0.5,
+    borderTopWidth: 0.5,
+    borderColor: "rgba(154,154,154, .5)",
+    paddingHorizontal: 15,
     paddingTop: 10,
     paddingBottom: 10,
   },
@@ -178,12 +174,52 @@ const styles = StyleSheet.create({
     shadowRadius: 2.62,
     elevation: 4,
   },
+  inputTitle: {
+    fontWeight: "bold",
+  },
   textInput: {
     fontSize: 14,
     paddingHorizontal: 10,
     backgroundColor: "white",
   },
   inputContainer: {
-    width: "80%",
+    width: "40%",
+  },
+  labelStyle: {
+    fontSize: 16,
+    color: "rgb(134, 147, 158)",
+    fontWeight: "bold",
+    paddingBottom: 10,
+  },
+  inputWrapContainer: {
+    width: "40%",
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+  },
+  itemPicker: {
+    paddingVertical: 6,
+  },
+  dispatchContentContainer: {
+    borderBottomWidth: 0.5,
+    borderColor: "rgba(154,154,154, .5)",
+  },
+  fileContainer: {
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+  },
+  uploadFileContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  fileName: {
+    fontSize: 16,
+    paddingLeft: "1%",
+  },
+  submitContainer: {
+    alignItems: "center",
+    paddingVertical: "5%",
+  },
+  submitButton: {
+    width: "10%",
   },
 });

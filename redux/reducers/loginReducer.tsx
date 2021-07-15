@@ -16,7 +16,11 @@ const initialState = {
   token: "",
   refreshToken: "",
   expiresOn: "",
-  data: "",
+  data: {
+    maCV: 0,
+    quyenduyet: 0,
+    taikhoan: "",
+  },
   isAdmin: 0,
   error: false,
   getTokenStatus: false,
@@ -56,6 +60,7 @@ export const loginReducer = (state: any = initialState, action: AnyAction) => {
         userId: action.payload.userID,
         isAdmin: action.payload.isAdmin,
         isLoggedIn: action.payload.isLoggedIn,
+        data: action.payload.data,
         getTokenStatus: true,
       };
     }

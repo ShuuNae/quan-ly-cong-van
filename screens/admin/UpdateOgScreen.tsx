@@ -1,18 +1,10 @@
-import React from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Dimensions,
-  ImageBackground,
-} from "react-native";
 import { useLinkTo } from "@react-navigation/native";
-import { useDispatch, useSelector } from "react-redux";
-import { IRootState } from "../../redux/reducers";
-import UpdateArrive from "../../components/arrives/UpdateArrive";
-import { loginReducer } from "../../redux/reducers/loginReducer";
+import React from "react";
+import { Dimensions, ImageBackground, StyleSheet, View } from "react-native";
+import { useSelector } from "react-redux";
+import UpdateOg from "../../components/admin/UpdateOg";
 import NavBar from "../../components/NavBar";
-import UpdateAccount from "../../components/admin/UpdateAccount";
+import { IRootState } from "../../redux/reducers";
 
 const HEIGHT = Dimensions.get("window").height;
 
@@ -21,7 +13,7 @@ interface IProps {
   route: any;
 }
 
-const UpdateAccountScreen = (props: IProps) => {
+const UpdateOgScreen = (props: IProps) => {
   const { loginReducer } = useSelector((state: IRootState) => state);
   const linkTo = useLinkTo();
   const id = props.route.params.id;
@@ -36,14 +28,14 @@ const UpdateAccountScreen = (props: IProps) => {
           <NavBar />
         </View>
         <View style={styles.middle}>
-          <UpdateAccount id={id} />
+          <UpdateOg id={id} />
         </View>
       </ImageBackground>
     </View>
   );
 };
 
-export default UpdateAccountScreen;
+export default UpdateOgScreen;
 
 const styles = StyleSheet.create({
   container: {

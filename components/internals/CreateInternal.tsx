@@ -17,6 +17,7 @@ import { path, secretLevel, urgency } from "../../assets/data";
 import * as DocumentPicker from "expo-document-picker";
 import { useLinkTo } from "@react-navigation/native";
 import { reloadPage } from "../../redux/actions/AuthActions";
+import fastMessage from "../FastMessage";
 
 ///////////////////////IF U WANT SET MAX DAY FOR INPUT DATE ////////////////////
 // const day = new Date().toISOString().split("T")[0];
@@ -77,17 +78,27 @@ const CreateInternal = () => {
           let resultCreateDispatch: any = await createArrive(data);
           if (resultCreateDispatch.status === 200) {
             dispatch(reloadPage("Internals create"));
+            fastMessage("Tạo thành công!", "success");
             linkTo("/cong-van-noi-bo");
+          } else {
+            fastMessage("Tạo thất bại!", "danger");
+            setLoading(false);
           }
         }
+      } else {
+        fastMessage("Tạo thất bại!", "danger");
+        setLoading(false);
       }
     } else {
-      console.log(data);
       let result: any = await createArrive(data);
       if (result.status === 200) {
         setLoading(false);
+        fastMessage("Tạo thành công!", "success");
         dispatch(reloadPage("Internals create"));
         linkTo("/cong-van-noi-bo");
+      } else {
+        fastMessage("Tạo thất bại!", "danger");
+        setLoading(false);
       }
     }
   };
@@ -447,12 +458,19 @@ const CreateInternal = () => {
         </View>
       </View>
       <View style={styles.submitContainer}>
-        <Button
-          title="Tạo"
-          containerStyle={styles.submitButton}
-          onPress={handleSubmit(onSubmit)}
-        />
-        <Text></Text>
+        {loading ? (
+          <Button
+            containerStyle={styles.submitButton}
+            title="Loading button"
+            loading
+          />
+        ) : (
+          <Button
+            title="Tạo"
+            containerStyle={styles.submitButton}
+            onPress={handleSubmit(onSubmit)}
+          />
+        )}
       </View>
     </View>
   );

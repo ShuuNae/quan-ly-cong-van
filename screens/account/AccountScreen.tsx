@@ -51,11 +51,11 @@ const AccountScreen = (props: IProps) => {
               component={ChangePassword}
               options={{ title: "Đổi mật khẩu" }}
             />
-            <Drawer.Screen
+            {/* <Drawer.Screen
               name="Thông tin cơ quan"
               component={AccountInformation}
               options={{ title: "Thông tin cơ quan" }}
-            />
+            /> */}
           </Drawer.Navigator>
         </View>
       </ImageBackground>

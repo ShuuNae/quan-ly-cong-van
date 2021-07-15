@@ -1,5 +1,5 @@
 import axios from "axios";
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,14 +7,16 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
+  Modal,
 } from "react-native";
-import { useLinkTo } from "@react-navigation/native";
+import { useLinkTo, useIsFocused } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { getLoginToken } from "../../redux/actions/AuthActions";
 import { IRootState } from "../../redux/reducers";
-import { Button } from "react-native-elements";
+import { Button, Overlay } from "react-native-elements";
 import { Input } from "react-native-elements";
-import { DataTable } from "react-native-paper";
+import { DataTable, Dialog, Portal, Provider } from "react-native-paper";
+import fastMessage from "../FastMessage";
 
 const DispatchesList = () => {
   const dispatch = useDispatch();
@@ -22,7 +24,21 @@ const DispatchesList = () => {
   const [DispatchesList, setDispatchesList] = React.useState<any>();
   const [page, setPage] = React.useState<number>(0);
   const [totalPages, setTotalPages] = React.useState<any>(1);
+  const [searchText, setSearchText] = React.useState<string>("");
   const linkTo = useLinkTo();
+  const isFocused = useIsFocused();
+  const [selectedId, setSelectedId] = React.useState<any>();
+
+  const [visible, setVisible] = useState(false);
+
+  const toggleOverlay = () => {
+    setVisible((prevState) => !prevState);
+  };
+
+  const toggleToDelete = (id: any) => {
+    toggleOverlay();
+    setSelectedId(id);
+  };
 
   const goToDispatchDetail = (id: any) => {
     linkTo("/cong-van-di/" + id);
@@ -35,6 +51,52 @@ const DispatchesList = () => {
 
   const goToUpdateDispatch = (id: any, userId: any) => {
     linkTo(`/cap-nhat-cong-van-di/${id}/${userId}`);
+  };
+
+  const deleteItem = async (id: any) => {
+    try {
+      let res = await axios.delete(
+        "https://qlcv-server.herokuapp.com/api/dispatches/",
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+          data: {
+            maVB: id,
+          },
+        }
+      );
+      if (res.data.success == 1) {
+        getListPagination();
+        getListCount();
+        toggleOverlay();
+        fastMessage("Xóa thành công!", "success");
+      } else {
+        fastMessage("Xóa thất bại!", "danger");
+      }
+    } catch (err) {
+      fastMessage("Xóa thất bại!", "danger");
+    }
+  };
+
+  const searchButton = async () => {
+    try {
+      const res = await axios.get(
+        "https://qlcv-server.herokuapp.com/api/dispatches/search",
+        {
+          params: {
+            page: page,
+            searchData: searchText,
+          },
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+      let ResponseData = [...res.data.data];
+      console.log(ResponseData);
+      setDispatchesList(ResponseData);
+    } catch (e) {}
   };
 
   const getDispatchesList = async () => {
@@ -55,138 +117,213 @@ const DispatchesList = () => {
       setDispatchesList(null);
     }
   };
+  const getListCount = async () => {
+    try {
+      const res = await axios.get(
+        "https://qlcv-server.herokuapp.com/api/dispatches/getCount",
+        {
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+      let ResponseData: any = { ...res.data.data };
+      let total: number = ResponseData.tong;
+      if (total) {
+        let totalPage = Math.ceil(total / 20);
+        setTotalPages(totalPage);
+      }
+    } catch (e) {}
+  };
+
+  const getListPagination = async () => {
+    try {
+      const res = await axios.get(
+        "https://qlcv-server.herokuapp.com/api/dispatches/pagination",
+        {
+          params: {
+            page: page,
+          },
+          headers: {
+            Authorization: `Bearer ${loginReducer.token}`,
+          },
+        }
+      );
+      console.log(res);
+      let ResponseData = [...res.data.data];
+      console.log(ResponseData);
+      setDispatchesList(ResponseData);
+    } catch (e) {
+      setDispatchesList(null);
+    }
+  };
 
   React.useEffect(() => {
-    if (
-      loginReducer.token ||
-      (loginReducer.reloadPageName && loginReducer.reloadPageName === "Home")
-    ) {
-      getDispatchesList();
+    if (loginReducer.token) {
+      // getDispatchesList();
+      getListPagination();
+      getListCount();
     }
-  }, [loginReducer.token, loginReducer.reloadPageName]);
+  }, [loginReducer.token, loginReducer.reloadPageName, page, isFocused]);
+
+  React.useEffect(() => {
+    console.log(visible);
+  }, [visible]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Danh sách công văn đi</Text>
-      <View style={styles.addContainer}>
-        <View style={{ flexDirection: "row" }}>
-          <Input
-            placeholder="Tìm kiếm"
-            // leftIcon={<Icon name="user" size={24} color="black" />}
+    <>
+      <Overlay
+        ModalComponent={Modal}
+        isVisible={visible}
+        onBackdropPress={toggleOverlay}
+        overlayStyle={{ paddingHorizontal: 20 }}
+      >
+        <Text style={{ paddingTop: 5, paddingBottom: 35, fontSize: 16 }}>
+          Bạn có muốn xóa công văn này?
+        </Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Button
+            title="Xóa"
+            containerStyle={{ width: "40%" }}
+            buttonStyle={{ backgroundColor: "#bb2124" }}
+            onPress={() => {
+              deleteItem(selectedId);
+            }}
           />
           <Button
-            title="Tìm kiếm"
-            type="outline"
-            // containerStyle={{ width: "10%" }}
-            titleStyle={{ fontSize: 16 }}
+            title="Hủy"
+            containerStyle={{ width: "40%" }}
+            onPress={toggleOverlay}
           />
         </View>
-        <Button
-          title="Thêm mới"
-          type="outline"
-          containerStyle={{ width: "10%" }}
-          titleStyle={{ fontSize: 16 }}
-          onPress={toCreate}
-        />
-      </View>
-      <DataTable>
-        <DataTable.Header>
-          <DataTable.Title>Ký hiệu</DataTable.Title>
-          <DataTable.Title>Số hiệu</DataTable.Title>
-          <DataTable.Title>Tên văn bản</DataTable.Title>
-          <DataTable.Title>Ngày ký</DataTable.Title>
-          <DataTable.Title>Ngày đi</DataTable.Title>
-          <DataTable.Title>Nơi nhận</DataTable.Title>
-          <DataTable.Title
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            Tình trạng duyệt
-          </DataTable.Title>
-          <DataTable.Title
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            Thao tác
-          </DataTable.Title>
-        </DataTable.Header>
-        {DispatchesList ? (
-          <FlatList
-            data={DispatchesList}
-            keyExtractor={(item) => item.maVB + ""}
-            renderItem={({ item }) => (
-              <DataTable.Row>
-                <DataTable.Cell>{item.kyhieu}</DataTable.Cell>
-                <DataTable.Cell>{item.sohieu}</DataTable.Cell>
-                <DataTable.Cell>{item.tenvb}</DataTable.Cell>
-                <DataTable.Cell>{item.ngayky}</DataTable.Cell>
-                <DataTable.Cell style={styles.row}>
-                  {item.ngaydi}
-                </DataTable.Cell>
-                <DataTable.Cell style={styles.row}>
-                  {item.cqnhan}
-                </DataTable.Cell>
-                <DataTable.Cell
-                  style={{
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {item.tinhtrangduyet}
-                </DataTable.Cell>
-                <DataTable.Cell
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => {
-                      goToUpdateDispatch(item.maVB, item.maND);
+      </Overlay>
+      <View style={styles.container}>
+        <Text style={styles.title}>Danh sách công văn đi</Text>
+        <View style={styles.addContainer}>
+          <View style={{ flexDirection: "row" }}>
+            <Input
+              placeholder="Tìm kiếm"
+              // leftIcon={<Icon name="user" size={24} color="black" />}
+              value={searchText}
+              onChangeText={setSearchText}
+            />
+            <Button
+              title="Tìm kiếm"
+              type="outline"
+              // containerStyle={{ width: "10%" }}
+              titleStyle={{ fontSize: 16 }}
+              onPress={searchButton}
+            />
+          </View>
+          <Button
+            title="Thêm mới"
+            type="outline"
+            containerStyle={{ width: "10%" }}
+            titleStyle={{ fontSize: 16 }}
+            onPress={toCreate}
+          />
+        </View>
+        <DataTable>
+          <DataTable.Header>
+            <DataTable.Title>Ký hiệu</DataTable.Title>
+            <DataTable.Title>Số hiệu</DataTable.Title>
+            <DataTable.Title>Tên văn bản</DataTable.Title>
+            <DataTable.Title>Ngày ký</DataTable.Title>
+            <DataTable.Title>Ngày đi</DataTable.Title>
+            <DataTable.Title>Nơi nhận</DataTable.Title>
+            <DataTable.Title
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              Tình trạng duyệt
+            </DataTable.Title>
+            <DataTable.Title
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              Thao tác
+            </DataTable.Title>
+          </DataTable.Header>
+          {DispatchesList ? (
+            <FlatList
+              data={DispatchesList}
+              keyExtractor={(item) => item.maVB + ""}
+              renderItem={({ item }) => (
+                <DataTable.Row>
+                  <DataTable.Cell>{item.kyhieu}</DataTable.Cell>
+                  <DataTable.Cell>{item.sohieu}</DataTable.Cell>
+                  <DataTable.Cell>{item.tenvb}</DataTable.Cell>
+                  <DataTable.Cell>{item.ngayky}</DataTable.Cell>
+                  <DataTable.Cell style={styles.row}>
+                    {item.ngaydi}
+                  </DataTable.Cell>
+                  <DataTable.Cell style={styles.row}>
+                    {item.cqnhan}
+                  </DataTable.Cell>
+                  <DataTable.Cell
+                    style={{
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    <Text style={styles.row}>Sửa</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => goToDispatchDetail(item.maVB)}
+                    {item.tinhtrangduyet}
+                  </DataTable.Cell>
+                  <DataTable.Cell
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
                   >
-                    <Text style={styles.row}>Xem</Text>
-                  </TouchableOpacity>
-                  {loginReducer.isAdmin == 1 && (
+                    {item.maND == loginReducer.userId && (
+                      <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => {
+                          goToUpdateDispatch(item.maVB, item.maND);
+                        }}
+                      >
+                        <Text style={styles.row}>Sửa</Text>
+                      </TouchableOpacity>
+                    )}
                     <TouchableOpacity
                       style={styles.button}
                       onPress={() => goToDispatchDetail(item.maVB)}
                     >
-                      <Text style={styles.row}>Xóa</Text>
+                      <Text style={styles.row}>Xem</Text>
                     </TouchableOpacity>
-                  )}
-                </DataTable.Cell>
-              </DataTable.Row>
-            )}
-          />
-        ) : (
-          <View style={styles.container}>
-            <ActivityIndicator size="large" color="#00ff00" />
-          </View>
-        )}
+                    {loginReducer.isAdmin == 1 && (
+                      <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => toggleToDelete(item.maVB)}
+                      >
+                        <Text style={styles.row}>Xóa</Text>
+                      </TouchableOpacity>
+                    )}
+                  </DataTable.Cell>
+                </DataTable.Row>
+              )}
+            />
+          ) : (
+            <View style={styles.container}>
+              <ActivityIndicator size="large" color="#00ff00" />
+            </View>
+          )}
 
-        <DataTable.Pagination
-          page={page}
-          numberOfPages={totalPages}
-          onPageChange={(page) => setPage(page)}
-          label={`Trang ${page + 1}`}
-          showFastPaginationControls
-        />
-      </DataTable>
-    </View>
+          <DataTable.Pagination
+            page={page}
+            numberOfPages={totalPages}
+            onPageChange={(page) => setPage(page)}
+            label={`Trang ${page + 1} trên ${totalPages}`}
+            showFastPaginationControls
+          />
+        </DataTable>
+      </View>
+    </>
   );
 };
 
@@ -241,5 +378,17 @@ const styles = StyleSheet.create({
   },
   button: {
     paddingHorizontal: 8,
+  },
+  containeralt: {
+    alignItems: "center",
+    backgroundColor: "white",
+    borderColor: "#eee",
+    borderRadius: 10,
+    borderWidth: 1,
+    justifyContent: "center",
+    height: 300,
+    margin: "auto",
+    padding: 30,
+    width: 300,
   },
 });

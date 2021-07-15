@@ -20,7 +20,14 @@ import { useLinkTo } from "@react-navigation/native";
 import { reloadPage } from "../../redux/actions/AuthActions";
 import fastMessage from "../FastMessage";
 
-const UpdateInfo = () => {
+///////////////////////IF U WANT SET MAX DAY FOR INPUT DATE ////////////////////
+// const day = new Date().toISOString().split("T")[0];
+// console.log(day);
+////////////////////////////////////////////////////////////////////////////////
+interface IProp {
+  id: number;
+}
+const UpdateOg = (props: IProp) => {
   const { loginReducer } = useSelector((state: IRootState) => state);
   const [positionList, setPositionList] = React.useState<any>();
   const [departmentList, setDepartmentList] = React.useState<any>();
@@ -37,12 +44,7 @@ const UpdateInfo = () => {
   } = useForm();
 
   const onSubmit = (data: any) => {
-    data.maND = arriveDetail.maND;
-    data.taikhoan = arriveDetail.taikhoan;
-    data.trangthailamviec = arriveDetail.trangthailamviec;
-    data.maPB = arriveDetail.maPB;
-    data.maCV = arriveDetail.maCV;
-    data.isAdmin = arriveDetail.isAdmin;
+    data.maCQ = arriveDetail.maCQ;
     updateAccount(data);
   };
 
@@ -50,7 +52,7 @@ const UpdateInfo = () => {
     try {
       setLoading(true);
       let res = await axios.patch(
-        "https://qlcv-server.herokuapp.com/api/users",
+        "https://qlcv-server.herokuapp.com/api/organizations",
         data,
         {
           headers: {
@@ -61,7 +63,7 @@ const UpdateInfo = () => {
       if (res.status === 200) {
         setLoading(false);
         fastMessage("Cập nhật thành công!", "success");
-        linkTo("/tai-khoan/thong-tin-tai-khoan");
+        linkTo("/quan-tri-vien/quan-ly-co-quan");
       } else {
         fastMessage("Cập nhật thất bại!", "danger");
         setLoading(false);
@@ -75,13 +77,14 @@ const UpdateInfo = () => {
   const getArrive = async () => {
     try {
       const res = await axios.get(
-        "https://qlcv-server.herokuapp.com/api/users/" + loginReducer.userId,
+        "https://qlcv-server.herokuapp.com/api/organizations/" + props.id,
         {
           headers: {
             Authorization: `Bearer ${loginReducer.token}`,
           },
         }
       );
+      console.log(res);
       if (res.data.success == 1) {
         let responseData = { ...res.data.data };
         setDispatchDetail(responseData);
@@ -93,6 +96,7 @@ const UpdateInfo = () => {
       setDispatchDetail(null);
     }
   };
+
   React.useEffect(() => {
     if (loginReducer.token) {
       getArrive();
@@ -101,7 +105,7 @@ const UpdateInfo = () => {
 
   return arriveDetail ? (
     <View style={styles.container}>
-      <Text style={styles.title}>Cập nhật thông tin tài khoản</Text>
+      <Text style={styles.title}>Cập nhật cơ quan</Text>
       <View style={styles.infoContainer}>
         <Controller
           control={control}
@@ -111,51 +115,14 @@ const UpdateInfo = () => {
               containerStyle={styles.inputContainer}
               onChangeText={(value) => onChange(value)}
               value={value}
-              errorMessage={errors.hoten && "Không được để trống"}
-              label="Họ và tên"
+              errorMessage={errors.tencq && "Không được để trống"}
+              label="Tên cơ quan"
             />
           )}
-          name="hoten"
+          name="tencq"
           rules={{ required: true }}
-          defaultValue={arriveDetail.hoten || ""}
+          defaultValue={arriveDetail.tencq || ""}
         />
-        <Controller
-          control={control}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <View style={styles.inputWrapContainer}>
-              <Text style={styles.labelStyle}>Năm sinh</Text>
-              <DateTimePicker
-                value={value}
-                onChange={onChange}
-                style={{ paddingVertical: 3.5 }}
-              />
-            </View>
-          )}
-          name="namsinh"
-          rules={{ required: true }}
-          defaultValue={arriveDetail.namsinh || ""}
-        />
-        {errors.namsinh && <Text>Không được để trống</Text>}
-        <Controller
-          control={control}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <View style={styles.inputWrapContainer}>
-              <Text style={styles.labelStyle}>Giới tính</Text>
-              <Picker
-                style={styles.itemPicker}
-                selectedValue={value}
-                onValueChange={(itemValue, itemIndex) => onChange(itemValue)}
-              >
-                <Picker.Item label="Nam" value={1} />
-                <Picker.Item label="Nữ" value={2} />
-              </Picker>
-            </View>
-          )}
-          name="gioitinh"
-          rules={{ required: true }}
-          defaultValue={arriveDetail.gioitinh || ""}
-        />
-        {errors.gioitinh && <Text>Không được để trống</Text>}
         <Controller
           control={control}
           render={({ field: { onChange, onBlur, value } }) => (
@@ -171,6 +138,54 @@ const UpdateInfo = () => {
           name="diachi"
           rules={{ required: true }}
           defaultValue={arriveDetail.diachi || ""}
+        />
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              style={styles.textInput}
+              containerStyle={styles.inputContainer}
+              onChangeText={(value) => onChange(value.replace(/[^0-9]/g, ""))}
+              value={value}
+              errorMessage={errors.dienthoai && "Không được để trống"}
+              label="Điện thoại"
+            />
+          )}
+          name="dienthoai"
+          rules={{ required: true }}
+          defaultValue={arriveDetail.dienthoai || ""}
+        />
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              style={styles.textInput}
+              containerStyle={styles.inputContainer}
+              onChangeText={(value) => onChange(value.replace(/[^0-9]/g, ""))}
+              value={value}
+              errorMessage={errors.fax && "Không được để trống"}
+              label="Fax"
+            />
+          )}
+          name="fax"
+          rules={{ required: true }}
+          defaultValue={arriveDetail.fax || ""}
+        />
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              style={styles.textInput}
+              containerStyle={styles.inputContainer}
+              onChangeText={(value) => onChange(value)}
+              value={value}
+              errorMessage={errors.email && "Không được để trống"}
+              label="Email"
+            />
+          )}
+          name="email"
+          rules={{ required: true }}
+          defaultValue={arriveDetail.email || ""}
         />
       </View>
       {loading ? (
@@ -213,7 +228,7 @@ const UpdateInfo = () => {
   );
 };
 
-export default UpdateInfo;
+export default UpdateOg;
 
 const styles = StyleSheet.create({
   container: {

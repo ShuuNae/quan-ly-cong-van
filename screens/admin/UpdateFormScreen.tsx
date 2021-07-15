@@ -13,6 +13,8 @@ import UpdateArrive from "../../components/arrives/UpdateArrive";
 import { loginReducer } from "../../redux/reducers/loginReducer";
 import NavBar from "../../components/NavBar";
 import UpdateAccount from "../../components/admin/UpdateAccount";
+import Updatedocument from "../../components/admin/UpdateDocument";
+import UpdateForm from "../../components/admin/UpdateForm";
 
 const HEIGHT = Dimensions.get("window").height;
 
@@ -21,7 +23,7 @@ interface IProps {
   route: any;
 }
 
-const UpdateAccountScreen = (props: IProps) => {
+const UpdateFormScreen = (props: IProps) => {
   const { loginReducer } = useSelector((state: IRootState) => state);
   const linkTo = useLinkTo();
   const id = props.route.params.id;
@@ -36,14 +38,14 @@ const UpdateAccountScreen = (props: IProps) => {
           <NavBar />
         </View>
         <View style={styles.middle}>
-          <UpdateAccount id={id} />
+          <UpdateForm id={id} />
         </View>
       </ImageBackground>
     </View>
   );
 };
 
-export default UpdateAccountScreen;
+export default UpdateFormScreen;
 
 const styles = StyleSheet.create({
   container: {

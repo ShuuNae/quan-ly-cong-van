@@ -30,7 +30,6 @@ import CreateArriveScreen from "../screens/arrives/CreateArriveScreen";
 import UpdateArriveScreen from "../screens/arrives/UpdateArriveScreen";
 import AccountScreen from "../screens/account/AccountScreen";
 import UpdateAccountInfoScreen from "../screens/account/UpdateAccountInfoScreen";
-import { loginReducer } from "../redux/reducers/loginReducer";
 import AdminScreen from "../screens/admin/AdminScreen";
 import AddAccountScreen from "../screens/admin/AddAccountScreen";
 import UpdateAccountScreen from "../screens/admin/UpdateAccountScreen";
@@ -38,6 +37,17 @@ import Internals from "../screens/internals/Internals";
 import CreateInternalScreen from "../screens/internals/CreateInternalScreen";
 import InternalDetailScreen from "../screens/internals/InternalDetailScreen";
 import UpdateInternalScreen from "../screens/internals/UpdateInternalScreen";
+import AccountDetailAdminScreen from "../screens/admin/AccountDetailAdminScreen";
+import AddDocumentScreen from "../screens/admin/AddDocumentScreen";
+import UpdateDocumentScreen from "../screens/admin/UpdateDocumentScreen";
+import AddFormScreen from "../screens/admin/AddFormScreen";
+import UpdateFormScreen from "../screens/admin/UpdateFormScreen";
+import AddPositionScreen from "../screens/admin/AddPositionScreen";
+import UpdatePositionScreen from "../screens/admin/UpdatePositionScreen";
+import AddDepartmentScreen from "../screens/admin/AddDepartmentScreen";
+import UpdateDepartmentScreen from "../screens/admin/UpdateDepartmentScreen";
+import UpdateOgScreen from "../screens/admin/UpdateOgScreen";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function Navigation({
   colorScheme,
@@ -64,6 +74,16 @@ function RootNavigator() {
   React.useEffect(() => {
     dispatch(getLoginToken());
   }, []);
+  if (!loginReducer.getTokenStatus) {
+    return (
+      <LoadingScreen />
+      // <Stack.Screen
+      //   name="Loading"
+      //   component={LoadingScreen}
+      //   options={{ title: "Đang tải" }}
+      // />
+    );
+  }
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {loginReducer.isLoggedIn == false &&
@@ -147,23 +167,76 @@ function RootNavigator() {
             component={UpdateInternalScreen}
             options={{ title: "Cập nhật công văn nội bộ" }}
           />
+          <Stack.Screen
+            name="AccountDetailAdmin"
+            component={AccountDetailAdminScreen}
+            options={{ title: "Chi tiết tài khoản" }}
+          />
 
-          {/* {loginReducer.isAdmin == 1 && loginReducer.getTokenStatus == true && ( */}
-          <Stack.Screen
-            name="Admin"
-            component={AdminScreen}
-            options={{ title: "Quản trị viên" }}
-          />
-          <Stack.Screen
-            name="AddAccount"
-            component={AddAccountScreen}
-            options={{ title: "Thêm tài khoản" }}
-          />
-          <Stack.Screen
-            name="UpdateAccount"
-            component={UpdateAccountScreen}
-            options={{ title: "Cập nhật tài khoản" }}
-          />
+          {loginReducer.isAdmin == 1 && loginReducer.getTokenStatus == true && (
+            <>
+              <Stack.Screen
+                name="Admin"
+                component={AdminScreen}
+                options={{ title: "Quản trị viên" }}
+              />
+              <Stack.Screen
+                name="AddAccount"
+                component={AddAccountScreen}
+                options={{ title: "Thêm tài khoản" }}
+              />
+              <Stack.Screen
+                name="UpdateAccount"
+                component={UpdateAccountScreen}
+                options={{ title: "Cập nhật tài khoản" }}
+              />
+              <Stack.Screen
+                name="AddDocument"
+                component={AddDocumentScreen}
+                options={{ title: "Thêm loại văn bản" }}
+              />
+              <Stack.Screen
+                name="UpdateDocument"
+                component={UpdateDocumentScreen}
+                options={{ title: "Cập nhật loại văn bản" }}
+              />
+              <Stack.Screen
+                name="AddForm"
+                component={AddFormScreen}
+                options={{ title: "Thêm biểu mẫu" }}
+              />
+              <Stack.Screen
+                name="UpdateForm"
+                component={UpdateFormScreen}
+                options={{ title: "Cập nhật biểu mẫu" }}
+              />
+              <Stack.Screen
+                name="AddPosition"
+                component={AddPositionScreen}
+                options={{ title: "Thêm chức vụ" }}
+              />
+              <Stack.Screen
+                name="UpdatePosition"
+                component={UpdatePositionScreen}
+                options={{ title: "Cập nhật chức vụ" }}
+              />
+              <Stack.Screen
+                name="AddDepartment"
+                component={AddDepartmentScreen}
+                options={{ title: "Thêm phòng ban" }}
+              />
+              <Stack.Screen
+                name="UpdateDepartment"
+                component={UpdateDepartmentScreen}
+                options={{ title: "Cập nhật phòng ban" }}
+              />
+              <Stack.Screen
+                name="UpdateOg"
+                component={UpdateOgScreen}
+                options={{ title: "Cập nhật cơ quan" }}
+              />
+            </>
+          )}
         </>
       )}
     </Stack.Navigator>

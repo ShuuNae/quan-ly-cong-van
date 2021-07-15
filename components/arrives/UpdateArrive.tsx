@@ -18,6 +18,7 @@ import { path, secretLevel, urgency } from "../../assets/data";
 import * as DocumentPicker from "expo-document-picker";
 import { useLinkTo } from "@react-navigation/native";
 import { reloadPage } from "../../redux/actions/AuthActions";
+import fastMessage from "../FastMessage";
 
 interface IProp {
   id: number;
@@ -69,24 +70,26 @@ const UpdateArrive = (props: IProp) => {
               dispatch(reloadPage("Arrives update"));
               setLoading(false);
               linkTo("/cong-van-den");
+              fastMessage("Cập nhật thành công!", "success");
             }
           }
         }
       } catch (err) {
         setLoading(false);
-        setFailed(true);
+        fastMessage("Cập nhật thất bại!", "danger");
       }
     } else {
       try {
         let result: any = await updateDispatch(data);
         if (result.status === 200) {
           setLoading(false);
-          alert("Cập nhật thành công");
+          fastMessage("Cập nhật thành công!", "success");
           dispatch(reloadPage("Arrives update"));
           linkTo("/cong-van-den");
         }
       } catch (err) {
-        setFailed(true);
+        setLoading(false);
+        fastMessage("Cập nhật thất bại!", "danger");
       }
     }
   };
@@ -317,7 +320,6 @@ const UpdateArrive = (props: IProp) => {
               rules={{ required: true }}
               defaultValue={arriveDetail.tenvb || ""}
             />
-            {/* {errors.tenvb && <Text>Không được để trống</Text>} */}
 
             <Controller
               control={control}
@@ -325,7 +327,9 @@ const UpdateArrive = (props: IProp) => {
                 <Input
                   style={styles.textInput}
                   containerStyle={styles.inputContainer}
-                  onChangeText={(value) => onChange(value)}
+                  onChangeText={(value) =>
+                    onChange(value.replace(/[^0-9]/g, ""))
+                  }
                   value={value}
                   keyboardType="numeric"
                   errorMessage={errors.sohieu && "Không được để trống"}
@@ -585,8 +589,6 @@ const UpdateArrive = (props: IProp) => {
             onPress={handleSubmit(onSubmit)}
           />
         )}
-
-        <Text>{failed && "Cập nhật thất bại! Xin thử lại sau"}</Text>
       </View>
     </View>
   ) : error ? (

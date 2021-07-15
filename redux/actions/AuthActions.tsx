@@ -17,35 +17,38 @@ export const login =
       }),
     });
     const bearerToken = result.value.data.token;
-    const userProfile = result.value.data.data.userID;
-    const isAdmin = result.value.data.data.isAdmin;
-    console.log(result);
     if (bearerToken) {
       const jwt = `${bearerToken}`;
       await AsyncStorage.setItem("AUTH_TOKEN_KEY", jwt);
-      await AsyncStorage.setItem("AUTH_PROFILE_KEY", userProfile);
-      await AsyncStorage.setItem("AUTH_ADMIN_KEY", isAdmin);
     }
   };
 
 export const getLoginToken = () => async (dispatch: any) => {
   const token = await AsyncStorage.getItem("AUTH_TOKEN_KEY");
-  const account = await AsyncStorage.getItem("AUTH_PROFILE_KEY");
-  const isAdmin = await AsyncStorage.getItem("AUTH_ADMIN_KEY");
+  const res = await axios.get(
+    "https://qlcv-server.herokuapp.com/api/users/checkToken",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  let userData = res.data.data;
   await dispatch({
     type: SET_JWT_TOKEN,
     payload: {
       token: token,
-      userID: account,
-      isAdmin: isAdmin,
+      userID: userData && userData.maND ? userData.maND : "",
+      isAdmin: userData && userData.isAdmin ? userData.isAdmin : "",
       isLoggedIn: token && token.length > 0 ? true : false,
+      data: userData ? userData : "",
     },
   });
 };
 
 export const clearAuthToken = () => {
   AsyncStorage.removeItem("AUTH_TOKEN_KEY");
-  AsyncStorage.removeItem("AUTH_PROFILE_KEY");
+  AsyncStorage.removeItem("AUTH_ADMIN_KEY");
 };
 
 export const logout = () => (dispatch: any) => {

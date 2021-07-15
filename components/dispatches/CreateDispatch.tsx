@@ -17,6 +17,7 @@ import { path, secretLevel, urgency } from "../../assets/data";
 import * as DocumentPicker from "expo-document-picker";
 import { useLinkTo } from "@react-navigation/native";
 import { reloadPage } from "../../redux/actions/AuthActions";
+import fastMessage from "../FastMessage";
 
 ///////////////////////IF U WANT SET MAX DAY FOR INPUT DATE ////////////////////
 // const day = new Date().toISOString().split("T")[0];
@@ -72,22 +73,33 @@ const CreateDispatch = () => {
       if (res.status === 200) {
         let signedUrl = res.data;
         let resultUpload: any = await uploadFile(fileUpload, signedUrl);
-        console.log(resultUpload);
         if (resultUpload.status === 200) {
           let resultCreateDispatch: any = await createDispatch(data);
           if (resultCreateDispatch.status === 200) {
+            setLoading(false);
+            fastMessage("Tạo thành công!", "success");
             dispatch(reloadPage("Home"));
             linkTo("/Home");
+          } else {
+            setLoading(false);
+            fastMessage("Tạo thất bại!", "danger");
           }
+        } else {
+          setLoading(false);
+          fastMessage("Tạo thất bại!", "danger");
         }
+      } else {
+        fastMessage("Tạo thất bại!", "danger");
       }
     } else {
-      console.log(data);
       let result: any = await createDispatch(data);
       if (result.status === 200) {
+        fastMessage("Tạo thành công!", "success");
         setLoading(false);
         dispatch(reloadPage("Home"));
         linkTo("/Home");
+      } else {
+        fastMessage("Tạo thất bại!", "danger");
       }
     }
   };
@@ -281,7 +293,9 @@ const CreateDispatch = () => {
                 <Input
                   style={styles.textInput}
                   containerStyle={styles.inputContainer}
-                  onChangeText={(value) => onChange(value)}
+                  onChangeText={(value) =>
+                    onChange(value.replace(/[^0-9]/g, ""))
+                  }
                   value={value}
                   keyboardType="number-pad"
                   errorMessage={errors.sohieu && "Không được để trống"}
@@ -408,7 +422,7 @@ const CreateDispatch = () => {
               )}
               name="mucdokhan"
               rules={{ required: true }}
-              defaultValue=""
+              defaultValue="1"
             />
             {errors.mucdokhan && <Text>Không được để trống</Text>}
 
@@ -430,7 +444,7 @@ const CreateDispatch = () => {
               )}
               name="mucdomat"
               rules={{ required: true }}
-              defaultValue=""
+              defaultValue="1"
             />
             {errors.mucdomat && <Text>Không được để trống</Text>}
 
@@ -528,12 +542,19 @@ const CreateDispatch = () => {
         </View>
       </View>
       <View style={styles.submitContainer}>
-        <Button
-          title="Tạo"
-          containerStyle={styles.submitButton}
-          onPress={handleSubmit(onSubmit)}
-        />
-        <Text></Text>
+        {loading ? (
+          <Button
+            containerStyle={styles.submitButton}
+            title="Loading button"
+            loading
+          />
+        ) : (
+          <Button
+            title="Tạo"
+            containerStyle={styles.submitButton}
+            onPress={handleSubmit(onSubmit)}
+          />
+        )}
       </View>
     </View>
   );

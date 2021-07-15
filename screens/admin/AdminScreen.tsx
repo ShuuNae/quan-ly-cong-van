@@ -21,6 +21,7 @@ import DocumentTypeManage from "../../components/admin/DocumentTypeManage";
 import FormManage from "../../components/admin/FormManage";
 import PositionManage from "../../components/admin/PositionManage";
 import DepartmentManage from "../../components/admin/DepartmentManage";
+import OgDetail from "../../components/admin/OgDetail";
 
 const HEIGHT = Dimensions.get("window").height;
 
@@ -72,7 +73,7 @@ const AdminScreen = (props: IProps) => {
             />
             <Drawer.Screen
               name="Quản lý cơ quan"
-              component={AccountInformation}
+              component={OgDetail}
               options={{ title: "Quản lý cơ quan" }}
             />
           </Drawer.Navigator>

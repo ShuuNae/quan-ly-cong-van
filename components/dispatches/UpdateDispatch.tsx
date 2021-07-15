@@ -18,6 +18,7 @@ import { path, secretLevel, urgency } from "../../assets/data";
 import * as DocumentPicker from "expo-document-picker";
 import { useLinkTo } from "@react-navigation/native";
 import { reloadPage } from "../../redux/actions/AuthActions";
+import fastMessage from "../FastMessage";
 
 interface IProp {
   id: number;
@@ -67,24 +68,27 @@ const UpdateDispatch = (props: IProp) => {
               dispatch(reloadPage("Home"));
               setLoading(false);
               linkTo("/Home");
+              fastMessage("Cập nhật thành công!", "success");
             }
           }
         }
       } catch (err) {
         setLoading(false);
-        setFailed(true);
+        fastMessage("Cập nhật thất bại!", "danger");
       }
     } else {
       try {
         let result: any = await updateDispatch(data);
         if (result.status === 200) {
           setLoading(false);
-          alert("Cập nhật thành công");
+          fastMessage("Cập nhật thành công!", "success");
           dispatch(reloadPage("Home"));
           linkTo("/Home");
         }
       } catch (err) {
+        setLoading(false);
         setFailed(true);
+        fastMessage("Cập nhật thất bại!", "danger");
       }
     }
   };
@@ -323,7 +327,9 @@ const UpdateDispatch = (props: IProp) => {
                 <Input
                   style={styles.textInput}
                   containerStyle={styles.inputContainer}
-                  onChangeText={(value) => onChange(value)}
+                  onChangeText={(value) =>
+                    onChange(value.replace(/[^0-9]/g, ""))
+                  }
                   value={value}
                   keyboardType="numeric"
                   errorMessage={errors.sohieu && "Không được để trống"}
@@ -583,8 +589,6 @@ const UpdateDispatch = (props: IProp) => {
             onPress={handleSubmit(onSubmit)}
           />
         )}
-
-        <Text>{failed && "Cập nhật thất bại! Xin thử lại sau"}</Text>
       </View>
     </View>
   ) : error ? (

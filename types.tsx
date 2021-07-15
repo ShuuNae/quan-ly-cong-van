@@ -19,12 +19,23 @@ export type RootStackParamList = {
   Account: undefined;
   UpdateAccountInfo: undefined;
   Admin: undefined;
+  AccountDetailAdmin: undefined;
   AddAccount: undefined;
   UpdateAccount: undefined;
   Internals: undefined;
   CreateInternal: undefined;
   InternalDetail: undefined;
   UpdateInternal: undefined;
+  AddDocument: undefined;
+  UpdateDocument: undefined;
+  AddForm: undefined;
+  UpdateForm: undefined;
+  AddPosition: undefined;
+  UpdatePosition: undefined;
+  AddDepartment: undefined;
+  UpdateDepartment: undefined;
+  UpdateOg: undefined;
+  Loading: undefined;
 };
 
 export type BottomTabParamList = {

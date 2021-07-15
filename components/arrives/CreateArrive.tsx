@@ -17,6 +17,7 @@ import { path, secretLevel, urgency } from "../../assets/data";
 import * as DocumentPicker from "expo-document-picker";
 import { useLinkTo } from "@react-navigation/native";
 import { reloadPage } from "../../redux/actions/AuthActions";
+import fastMessage from "../FastMessage";
 
 ///////////////////////IF U WANT SET MAX DAY FOR INPUT DATE ////////////////////
 // const day = new Date().toISOString().split("T")[0];
@@ -72,22 +73,29 @@ const CreateArrive = () => {
       if (res.status === 200) {
         let signedUrl = res.data;
         let resultUpload: any = await uploadFile(fileUpload, signedUrl);
-        console.log(resultUpload);
         if (resultUpload.status === 200) {
           let resultCreateDispatch: any = await createArrive(data);
           if (resultCreateDispatch.status === 200) {
+            setLoading(false);
             dispatch(reloadPage("Arrives create"));
+            fastMessage("Tạo thành công!", "success");
             linkTo("/cong-van-den");
+          } else {
+            setLoading(false);
+            fastMessage("Tạo thất bại!", "danger");
           }
         }
       }
     } else {
-      console.log(data);
       let result: any = await createArrive(data);
       if (result.status === 200) {
         setLoading(false);
         dispatch(reloadPage("Arrives create"));
         linkTo("/cong-van-den");
+        fastMessage("Tạo thành công!", "success");
+      } else {
+        setLoading(false);
+        fastMessage("Tạo thất bại!", "danger");
       }
     }
   };
@@ -281,7 +289,9 @@ const CreateArrive = () => {
                 <Input
                   style={styles.textInput}
                   containerStyle={styles.inputContainer}
-                  onChangeText={(value) => onChange(value)}
+                  onChangeText={(value) =>
+                    onChange(value.replace(/[^0-9]/g, ""))
+                  }
                   value={value}
                   keyboardType="number-pad"
                   errorMessage={errors.sohieu && "Không được để trống"}
@@ -528,12 +538,19 @@ const CreateArrive = () => {
         </View>
       </View>
       <View style={styles.submitContainer}>
-        <Button
-          title="Tạo"
-          containerStyle={styles.submitButton}
-          onPress={handleSubmit(onSubmit)}
-        />
-        <Text></Text>
+        {loading ? (
+          <Button
+            containerStyle={styles.submitButton}
+            title="Loading button"
+            loading
+          />
+        ) : (
+          <Button
+            title="Tạo"
+            containerStyle={styles.submitButton}
+            onPress={handleSubmit(onSubmit)}
+          />
+        )}
       </View>
     </View>
   );
